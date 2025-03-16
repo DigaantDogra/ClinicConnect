@@ -1,7 +1,7 @@
-
+// import { ArrowUpCircle } from "react-icons/bs"
 
 export const Home = () => {
     return <>
-        Hi from Home
+        Hello form Home
     </>
 }
