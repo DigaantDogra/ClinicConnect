@@ -5,11 +5,7 @@ import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2
 const defaultPage = "Home"
 
 export const Navbar = () => {
-    let [activeIcon, setActiveIcon] = useState(null);
-
-    useEffect(() => {
-        setActiveIcon(defaultPage)
-    })
+    let [activeIcon, setActiveIcon] = useState(defaultPage);
   
     return (
       <>
