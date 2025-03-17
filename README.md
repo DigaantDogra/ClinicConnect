@@ -11,19 +11,30 @@ This ongoing project streamlines healthcare access via a digital marketplace emp
 - **Notifications**: This application leverages a notification system for all types of users.
 - **Role-based access control**: This application deals with patients and doctors, who both have different dashboards and user goals.
 
-### Tech Used
+### Technology Stack
 
-- **Frontend**: React.js, tailwindcss, Bootstrap, Javascript
+- **Frontend**: React.js, Tailwind CSS, Bootstrap, Javascript
 - **Backend**: ASP.NET 9, C#, Firebase
 - **Development Platform**: VScode, this is a fully responsive web application that will be accessible to all browsers
 
 ### Future Roadmap
 
-- **Progressive Web Application (PWA) Implementation**: We will be develop the application as a PWA to ensure cross-platform compatibility (iOS, Android, desktop).
-- **Location Services**: At the moment we will not implement locations view but this non-functional requirment are will be covered then.
-- **Emergency Appointment System**: We will integrate emergency appointments to our application for emergency/priority services.
-- **Medical Administrator Role Integration**: Introduce a Medical Administrator actor with permissions to:
-                                                1. Manage doctor schedules and appointment slots.
-                                                2. Oversee clinic documents (licenses, operational policies).
-                                                3. Access patient medical records only with explicit patient consent (GDPR/hipaa-compliant).
-                                                4. Audit trail implementation for document access/modification.
+##### **Progressive Web Application (PWA) Implementation**: 
+- We will be develop the application as a PWA to ensure cross-platform compatibility (iOS, Android, desktop).
+
+##### **Location Services**: At the moment we have not implement locations view but this non-functional requirment are will be covered then.
+- Placeholder UI component for future geolocation features.
+- Planned functionality:
+- Clinic locator with real-time availability.
+
+Travel time estimation integration.
+
+##### **Emergency Appointment System**: We will integrate emergency appointments to our application for emergency/priority services.
+- Real-time notifications to medical staff for emergency cases.
+- Visual distinction in UI (color-coding, priority tags).
+
+##### **Medical Administrator Role Integration**: Introduce a Medical Administrator actor with permissions to:
+- Manage doctor schedules and appointment slots.
+- Oversee clinic documents (licenses, operational policies).
+- Access patient medical records only with explicit patient consent (GDPR/hipaa-compliant).
+- Audit trail implementation for document access/modification.
