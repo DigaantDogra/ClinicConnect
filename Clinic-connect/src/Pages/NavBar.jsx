@@ -1,10 +1,15 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom";
 import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill , BsFileEarmarkTextFill} from "react-icons/bs"
 
+const defaultPage = "Home"
 
-export const Navbar = ({ section }) => {
-    // Use state to track the active icon by its name (or ID)
-    const [activeIcon, setActiveIcon] = useState(null);
+export const Navbar = () => {
+    let [activeIcon, setActiveIcon] = useState(null);
+
+    useEffect(() => {
+        setActiveIcon(defaultPage)
+    })
   
     return (
       <>
@@ -42,18 +47,17 @@ export const Navbar = ({ section }) => {
             />
           </div>
         </div>
-        <section>{section}</section>
       </>
     );
   };
   
-  const SideIcon = ({ icon, name = "name", isActive, onClick }) => {
+  const SideIcon = ({ icon, name = "Home", isActive = false, onClick }) => {
     return (
-      <button onClick={onClick} className={isActive ? "sidebar-icon group" : "sidebar-icon-h group"}>
-        {icon}
-        <span className={`sidebar-name ${isActive ? "" : "group-hover:scale-100"}`}>
-          {name}
-        </span>
-      </button>
+      <Link to={`/${name}`} onClick={onClick} className={isActive ? "sidebar-icon group" : "sidebar-icon-h group"}>
+            {icon}
+            <span className={`sidebar-name ${isActive ? "" : "group-hover:scale-100"}`}>
+            {name}
+            </span>
+      </Link>
     );
   };
