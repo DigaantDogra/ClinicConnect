@@ -11,9 +11,9 @@ This ongoing project streamlines healthcare access via a digital marketplace emp
 - **Notifications**: This application leverages a notification system for all types of users.
 - **Role-based access control**: This application deals with patients and doctors, who both have different dashboards and user goals.
 
-### Tech Used
+### Technology Stack
 
-- **Frontend**: React.js, tailwindcss, Bootstrap, Javascript
+- **Frontend**: React.js, Tailwind CSS, Bootstrap, Javascript
 - **Backend**: ASP.NET 9, C#, Firebase
 - **Development Platform**: VScode, this is a fully responsive web application that will be accessible to all browsers
 
