@@ -6,8 +6,9 @@ function App() {
 
   return (
     <>
-      <Navbar/>
-      <Home/>
+      <Navbar section={
+          <Home userName={"User"}/>
+        }/>
     </>
   )
 }
