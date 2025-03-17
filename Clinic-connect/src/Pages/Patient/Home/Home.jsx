@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { HomeSection } from './HomeSection';
 import { BsPerson } from "react-icons/bs"
 
-export const Home = ({ userName }) => {
+export const Home = ({ userName = "User" }) => {
     const [currentDate, setCurrentDate] = useState('');
 
     useEffect(() => {
@@ -35,7 +35,6 @@ export const Home = ({ userName }) => {
             </button>
         </div>
         
-
         <HomeSection />
         
     </div>
