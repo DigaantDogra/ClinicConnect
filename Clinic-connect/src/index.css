@@ -3,12 +3,28 @@
 html,body {
   margin: 0;
   padding: 0;
-  font-family: 'Times New Roman', Times, serif;
+  font-family: 'IBM Plex Sans', Times, serif;
   background: #E5E5E5;
 }
 
 @layer components{
-  .sidebar-icon {
+  .sidebar-icon-h {
     @apply relative flex items-center justify-center h-15 w-full hover:translate-y-1.5  mx-auto hover:text-blue-500 hover:bg-blue-200 transition-all;
+  }
+
+  .sidebar-icon {
+    @apply relative flex items-center justify-center h-15 w-full  mx-auto text-blue-500 bg-blue-200;
+  }
+
+  .sidebar-name {
+    @apply absolute ml-30 bg-blue-400 text-white text-sm p-1.5 rounded-xl scale-0;
+  }
+
+  .home-btn{
+    @apply px-20 py-5 bg-blue-400 mx-10 mt-7 rounded-2xl hover:-translate-y-2 hover:bg-blue-500 transition;
+  }
+
+  .home-h1 {
+    @apply text-xl text-white;
   }
 }
