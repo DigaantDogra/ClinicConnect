@@ -1,22 +1,19 @@
+import { BackgroundCanvas } from "../../BackgroundCanvas";
+import { Link } from "react-router-dom";
 
 
 export const Schedule = () => {
     const appointments = [
         { date: '10/10/2020', time: '09:15-09:45am', doctor: 'Dr. Jacob Jones', reason: 'Mumps Stage II' },
-        { date: '10/12/2020', time: '12:00-12:45pm', doctor: 'Dr. Theresa Webb', reason: 'Depression' },
-        { date: '10/13/2020', time: '01:15-01:45pm', doctor: 'Dr. Jacob Jones', reason: 'Arthritis' },
-        { date: '10/14/2020', time: '02:00-02:45pm', doctor: 'Dr. Arlene McCoy', reason: 'Fracture' },
-        { date: '10/15/2020', time: '12:00-12:45pm', doctor: 'Dr. Esther Howard', reason: 'Depression' },
-        { date: '10/17/2020', time: '01:15-01:45pm', doctor: 'Dr. Jacob Jones', reason: 'Dyslexia' },
-        { date: '10/17/2020', time: '02:00-02:45pm', doctor: 'Dr. Theresa Webb', reason: 'Hypothermia' },
-        { date: '10/18/2020', time: '09:15-09:45am', doctor: 'Dr. Esther Howard', reason: 'Sunburn' },
-        { date: '10/19/2020', time: '12:00-12:45pm', doctor: 'Dr. Arlene McCoy', reason: 'Diarrhoea' },
-        { date: '10/20/2020', time: '09:15-09:45am', doctor: 'Dr. Arlene McCoy', reason: 'Arthritis' },
       ];
     
-      return (
+      return (<BackgroundCanvas section={
         <div className="p-6 max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4 text-gray-800">Request Appointment</h1>
+          <div className="flex justify-end">
+            <Link to={"/Search"}>
+            <h1 className="bg-blue-400 p-4 rounded-2xl text-white mb-3 hover:-translate-y-0.5 transition-all">Request Appointment</h1>
+            </Link>
+          </div>
           
           <div className="overflow-x-auto rounded-lg shadow">
             <table className="min-w-full divide-y divide-gray-200">
@@ -41,5 +38,7 @@ export const Schedule = () => {
             </table>
           </div>
         </div>
+      }/>
+        
       );
 }
