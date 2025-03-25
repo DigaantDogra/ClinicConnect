@@ -1,0 +1,12 @@
+# Ignore large files
+AI-Model/data/Doctor-HealthCare-100k.csv
+
+# Ignore virtual environment
+ai-env/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Python cache
+__pycache__/
+*.pyc
