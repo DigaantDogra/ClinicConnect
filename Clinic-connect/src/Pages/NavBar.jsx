@@ -24,12 +24,6 @@ export const Navbar = () => {
               onClick={() => setActiveIcon("Search")}
             />
             <SideIcon
-              icon={<BsFileEarmarkArrowUpFill />}
-              name="Upload"
-              isActive={activeIcon === "Upload"}
-              onClick={() => setActiveIcon("Upload")}
-            />
-            <SideIcon
               icon={<BsCalendar2CheckFill />}
               name="Schedule"
               isActive={activeIcon === "Schedule"}
