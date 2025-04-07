@@ -12,5 +12,4 @@ public class ApiController: Controller
 {
     // Set Up for Firebase
     
-    
 }
