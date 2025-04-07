@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "v5yNFZp2FVtGtaSEtcT7RS4Xgg/S6WsPltvTYOhNAcc=",
+  "Source": "ClinicConnectService",
+  "BasePath": "_content/ClinicConnectService",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
