@@ -25,3 +25,4 @@ ai-env/
 __pycache__/
 *.pyc
 Clinic-connect/
+Clinic-connect/node_modules/
