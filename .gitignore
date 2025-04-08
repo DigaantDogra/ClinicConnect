@@ -1,0 +1,27 @@
+# Ignore large model files
+AI-Model/trained_models/
+*.safetensors
+*.bin
+*.msgpack
+
+# Ignore datasets
+AI-Model/data/*.csv
+AI-Model/data/*.txt
+AI-Model/data/*.pdf
+
+# Ignore Jupyter notebooks (optional)
+*.ipynb_checkpoints/
+
+# Ignore virtual environment
+ai-env/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+Clinic-connect/
