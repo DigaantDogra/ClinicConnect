@@ -75,19 +75,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/digaantdogra/.nuget/packages/": {}
+    "/Users/arjunanand/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
+      "projectUniqueName": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
       "projectName": "ClinicConnectService",
-      "projectPath": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
-      "packagesPath": "/Users/digaantdogra/.nuget/packages/",
-      "outputPath": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/obj/",
+      "projectPath": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
+      "packagesPath": "/Users/arjunanand/.nuget/packages/",
+      "outputPath": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/digaantdogra/.nuget/NuGet/NuGet.Config"
+        "/Users/arjunanand/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -111,7 +111,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.100"
+      "SdkAnalysisLevel": "9.0.200"
     },
     "frameworks": {
       "net9.0": {
@@ -141,7 +141,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.202/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

@@ -1,5 +1,12 @@
 # Ignore large files
-AI-Model/data/Doctor-HealthCare-100k.csv
+AI-Model/trained_models
+*.safetensors
+*.bin
+*.msgpack
+
+# Dataset files
+*.csv
+*.txt
 
 # Ignore virtual environment
 ai-env/
