@@ -26,3 +26,7 @@ __pycache__/
 *.pyc
 Clinic-connect/
 Clinic-connect/node_modules/
+
+# Ignore MISTRAL MODEL
+AI-Model/mistral-clinicconnect
+
