@@ -70,6 +70,28 @@ class ApiService {
         throw error;
       }
     }
+
+    static async deleteAppointment(appointmentId) {
+      try {
+        console.log('Attempting to delete appointment with ID:', appointmentId);
+        const response = await fetch(`${this.baseUrl}/appointment/delete`, {
+          method: 'DELETE',
+          headers: await this.getHeaders(),
+          body: JSON.stringify({ id: appointmentId })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Failed to delete appointment: ${errorText}`);
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error deleting appointment:', error);
+        throw error;
+      }
+    }
   }
   
   export default ApiService;

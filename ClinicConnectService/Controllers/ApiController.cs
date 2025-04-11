@@ -75,4 +75,41 @@ public class ApiController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving appointments");
         }
     }
+
+    [HttpDelete("appointment/delete")]
+    public IActionResult DeleteAppointment([FromBody] DeleteAppointmentRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Received appointment deletion request for ID: {Id}", request.Id);
+            
+            if (string.IsNullOrEmpty(request.Id))
+            {
+                _logger.LogWarning("No appointment ID provided in delete request");
+                return BadRequest("Appointment ID is required");
+            }
+
+            var appointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == request.Id);
+            if (appointment == null)
+            {
+                _logger.LogWarning("Appointment with ID {Id} not found", request.Id);
+                return NotFound($"Appointment with ID {request.Id} not found");
+            }
+
+            DataStorage.Appointments.Remove(appointment);
+            _logger.LogInformation("Appointment with ID {Id} deleted successfully", request.Id);
+            
+            return Ok(new { message = "Appointment deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting appointment");
+            return StatusCode(500, "An error occurred while deleting the appointment");
+        }
+    }
+}
+
+public class DeleteAppointmentRequest
+{
+    public string Id { get; set; }
 }

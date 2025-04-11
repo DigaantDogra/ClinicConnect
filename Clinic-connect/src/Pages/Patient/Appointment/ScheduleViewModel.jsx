@@ -21,6 +21,7 @@ const useScheduleViewModel = () => {
       const formattedAppointments = data.map(appt => {
         console.log('Processing appointment:', appt);
         return {
+          id: appt.id,
           date: appt.date || 'N/A',
           time: appt.time || 'N/A',
           // doctor: appt.DoctorName || 'Dr. Jacob Jones',
@@ -40,11 +41,26 @@ const useScheduleViewModel = () => {
     }
   }, []);
 
+  const deleteAppointment = useCallback(async (appointmentId) => {
+    setIsLoading(true);
+    try {
+      await ApiService.deleteAppointment(appointmentId);
+      // Refresh the appointments list after successful deletion
+      await fetchAppointments();
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchAppointments]);
+
   return {
     appointments,
     isLoading,
     error,
-    fetchAppointments
+    fetchAppointments,
+    deleteAppointment
   };
 };
 

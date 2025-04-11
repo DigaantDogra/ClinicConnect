@@ -5,11 +5,17 @@ import useScheduleViewModel from './ScheduleViewModel';
 import { BsTrashFill } from "react-icons/bs"
 
 export const Schedule = () => {
-  const { appointments, isLoading, error, fetchAppointments } = useScheduleViewModel();
+  const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
 
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
+
+  const handleDeleteClick = async (appointmentId) => {
+    if (window.confirm('Are you sure you want to delete this appointment?')) {
+      await deleteAppointment(appointmentId);
+    }
+  };
 
   if (isLoading) return <BackgroundCanvas section={<div>Loading appointments...</div>} />;
   if (error) return <BackgroundCanvas section={<div>Error: {error}</div>} />;
@@ -44,7 +50,10 @@ export const Schedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctor}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <button className="text-red-500 text-xl/snug hover:text-red-700">
+                    <button
+                      onClick={() => handleDeleteClick(appointment.id)}
+                      className="text-red-500 text-xl/snug hover:text-red-700"
+                    >
                       <BsTrashFill />
                     </button>
                   </td>
