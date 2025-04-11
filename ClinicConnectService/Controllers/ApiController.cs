@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ClinicConnectService.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicConnectService.Controllers;
 
@@ -18,26 +19,60 @@ public static class DataStorage
 [Route("patient")]
 public class ApiController : ControllerBase
 {
+    private readonly ILogger<ApiController> _logger;
+
+    public ApiController(ILogger<ApiController> logger)
+    {
+        _logger = logger;
+    }
+
     [HttpPost("appointment/create")]
     public IActionResult CreateAppointment([FromBody] Appointment appointment)
     {
-        // Set patient email from authentication context
-        appointment.Email = "example@example.com";
-        
-        // Add validation logic here
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(ModelState);
-        }
+            _logger.LogInformation("Received appointment creation request: {@Appointment}", appointment);
+            
+            // Set patient email from authentication context
+            appointment.Email = "example@example.com";
+            
+            // Add validation logic here
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid appointment data: {@ModelState}", ModelState);
+                return BadRequest(ModelState);
+            }
 
-        DataStorage.Appointments.Add(appointment);
-        return CreatedAtAction(nameof(GetAppointments), appointment);
+            DataStorage.Appointments.Add(appointment);
+            _logger.LogInformation("Appointment added successfully. Total appointments: {Count}", DataStorage.Appointments.Count);
+            
+            return CreatedAtAction(nameof(GetAppointments), appointment);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating appointment");
+            return StatusCode(500, "An error occurred while creating the appointment");
+        }
     }
 
     [HttpGet("appointment/get")]
     public IActionResult GetAppointments()
     {
-        var patientEmail = "example@example.com";
-        return Ok(DataStorage.Appointments.Where(a => a.Email == patientEmail));
+        try
+        {
+            var patientEmail = "example@example.com";
+            var appointments = DataStorage.Appointments.Where(a => a.Email == patientEmail).ToList();
+            
+            _logger.LogInformation("Retrieved {Count} appointments for email {Email}", 
+                appointments.Count, patientEmail);
+            _logger.LogInformation("Appointments: {@Appointments}", appointments);
+            
+            return Ok(appointments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving appointments");
+            return StatusCode(500, "An error occurred while retrieving appointments");
+        }
     }
 }

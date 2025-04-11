@@ -107,7 +107,9 @@ export const Booking = () => {
       reason: reason
     };
 
+    console.log('Booking.jsx - Sending appointment data:', appointmentData);
     const success = await submitBooking(appointmentData);
+    
     if (success) {
       // Redirect to schedule page on success
       window.location.href = '/Schedule';
@@ -240,7 +242,6 @@ export const Booking = () => {
         >
           {isLoading ? 'Booking...' : 'Book Now'}
         </button>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
     </div>
   }/>

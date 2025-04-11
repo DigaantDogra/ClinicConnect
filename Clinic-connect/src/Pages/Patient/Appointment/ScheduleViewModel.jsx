@@ -9,18 +9,30 @@ const useScheduleViewModel = () => {
   const fetchAppointments = useCallback(async () => {
     setIsLoading(true);
     try {
+      console.log('Fetching appointments...');
       const data = await ApiService.getAppointments();
+      console.log('Raw API Response:', data);
       
-      const formattedAppointments = data.map(appt => ({
-        email: appt.email,
-        date: appt.Date,
-        time: appt.Time,
-        doctor: appt.DoctorName || 'Dr. Jacob Jones',
-        reason: appt.Reason
-      }));
+      if (!Array.isArray(data)) {
+        console.error('API response is not an array:', data);
+        throw new Error('Invalid response format from server');
+      }
+
+      const formattedAppointments = data.map(appt => {
+        console.log('Processing appointment:', appt);
+        return {
+          date: appt.date || 'N/A',
+          time: appt.time || 'N/A',
+          // doctor: appt.DoctorName || 'Dr. Jacob Jones',
+          reason: appt.reason || 'N/A'
+        };
+      });
+      
+      console.log('Formatted Appointments:', formattedAppointments);
       setAppointments(formattedAppointments);
       setError(null);
     } catch (err) {
+      console.error('Error in fetchAppointments:', err);
       setError(err.message);
       setAppointments([]);
     } finally {
