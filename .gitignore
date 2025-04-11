@@ -1,5 +1,6 @@
 # Ignore large files
 AI-Model/trained_models
+AI-Model/mistral-clinicconnect/
 *.safetensors
 *.bin
 *.msgpack
