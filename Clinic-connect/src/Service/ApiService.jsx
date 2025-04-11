@@ -92,6 +92,28 @@ class ApiService {
         throw error;
       }
     }
+
+    static async editAppointment(appointmentData) {
+      try {
+        console.log('Attempting to edit appointment:', appointmentData);
+        const response = await fetch(`${this.baseUrl}/appointment/edit`, {
+          method: 'PUT',
+          headers: await this.getHeaders(),
+          body: JSON.stringify(appointmentData)
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Failed to edit appointment: ${errorText}`);
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error editing appointment:', error);
+        throw error;
+      }
+    }
   }
   
   export default ApiService;

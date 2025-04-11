@@ -18,7 +18,6 @@ export const Booking = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
-    // Generate available dates (excluding weekends and random days)
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
@@ -107,7 +106,6 @@ export const Booking = () => {
       reason: reason
     };
 
-    console.log('Booking.jsx - Sending appointment data:', appointmentData);
     const success = await submitBooking(appointmentData);
     
     if (success) {

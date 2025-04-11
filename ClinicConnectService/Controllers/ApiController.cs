@@ -107,6 +107,44 @@ public class ApiController : ControllerBase
             return StatusCode(500, "An error occurred while deleting the appointment");
         }
     }
+
+    [HttpPut("appointment/edit")]
+    public IActionResult EditAppointment([FromBody] Appointment updatedAppointment)
+    {
+        try
+        {
+            _logger.LogInformation("Received appointment edit request: {@Appointment}", updatedAppointment);
+            
+            if (string.IsNullOrEmpty(updatedAppointment.Id))
+            {
+                _logger.LogWarning("No appointment ID provided in edit request");
+                return BadRequest("Appointment ID is required");
+            }
+
+            var existingAppointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == updatedAppointment.Id);
+            if (existingAppointment == null)
+            {
+                _logger.LogWarning("Appointment with ID {Id} not found", updatedAppointment.Id);
+                return NotFound($"Appointment with ID {updatedAppointment.Id} not found");
+            }
+
+            // Update the appointment properties
+            existingAppointment.Date = updatedAppointment.Date;
+            existingAppointment.Time = updatedAppointment.Time;
+            existingAppointment.Reason = updatedAppointment.Reason;
+            existingAppointment.Day = updatedAppointment.Day;
+            existingAppointment.Email = updatedAppointment.Email;
+
+            _logger.LogInformation("Appointment with ID {Id} updated successfully", updatedAppointment.Id);
+            
+            return Ok(new { message = "Appointment updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating appointment");
+            return StatusCode(500, "An error occurred while updating the appointment");
+        }
+    }
 }
 
 public class DeleteAppointmentRequest

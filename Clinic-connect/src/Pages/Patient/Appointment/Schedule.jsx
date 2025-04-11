@@ -2,7 +2,7 @@ import { BackgroundCanvas } from "../../BackgroundCanvas";
 import { Link } from "react-router-dom";
 import { useEffect } from 'react';
 import useScheduleViewModel from './ScheduleViewModel';
-import { BsTrashFill } from "react-icons/bs"
+import { BsTrashFill , BsPencilFill } from "react-icons/bs"
 
 export const Schedule = () => {
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
@@ -55,6 +55,14 @@ export const Schedule = () => {
                       className="text-red-500 text-xl/snug hover:text-red-700"
                     >
                       <BsTrashFill />
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <button
+                      // onClick={() => handleDeleteClick(appointment.id)}
+                      className="text-blue-500 text-xl/snug hover:text-blue-700"
+                    >
+                      <BsPencilFill />
                     </button>
                   </td>
                 </tr>
