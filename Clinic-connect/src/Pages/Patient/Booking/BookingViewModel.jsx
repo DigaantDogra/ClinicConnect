@@ -12,13 +12,16 @@ const useBookingViewModel = () => {
         Date: appointmentData.date,
         Day: new Date(appointmentData.date).toLocaleDateString('en-US', { weekday: 'long' }),
         Time: appointmentData.time,
-        Reason: appointmentData.reason
+        Reason: appointmentData.reason,
+        Email: "example@example.com" // This should be replaced with actual user email
       };
       
+      console.log('Sending appointment data:', appointment);
       await ApiService.createAppointment(appointment);
       setError(null);
       return true;
     } catch (err) {
+      console.error('Error in submitBooking:', err);
       setError(err.message);
       return false;
     } finally {

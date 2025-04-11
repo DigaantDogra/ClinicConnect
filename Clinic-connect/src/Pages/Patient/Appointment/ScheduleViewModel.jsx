@@ -10,17 +10,19 @@ const useScheduleViewModel = () => {
     setIsLoading(true);
     try {
       const data = await ApiService.getAppointments();
-      // Transform API data to match table structure
+      
       const formattedAppointments = data.map(appt => ({
-        date: new Date(appt.Date).toLocaleDateString(),
+        email: appt.email,
+        date: appt.Date,
         time: appt.Time,
-        doctor: appt.DoctorName || 'Dr. Jacob Jones', // Update with actual doctor field
-        reason: appt.Reason || 'Mumps Stage II'       // Update with actual reason field
+        doctor: appt.DoctorName || 'Dr. Jacob Jones',
+        reason: appt.Reason
       }));
       setAppointments(formattedAppointments);
       setError(null);
     } catch (err) {
       setError(err.message);
+      setAppointments([]);
     } finally {
       setIsLoading(false);
     }
