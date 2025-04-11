@@ -12,16 +12,16 @@ public static class DataStorage
 {
     public static List<Appointment> Appointments = new List<Appointment>();
     public static List<Availability> Availabilities = new List<Availability>();
-    public static List<User> Users = new List<User>();
+    // public static List<User> Users = new List<User>();
 }
 
 [ApiController]
 [Route("patient")]
-public class ApiController : ControllerBase
+public class PatientApiController : ControllerBase
 {
-    private readonly ILogger<ApiController> _logger;
+    private readonly ILogger<PatientApiController> _logger;
 
-    public ApiController(ILogger<ApiController> logger)
+    public PatientApiController(ILogger<PatientApiController> logger)
     {
         _logger = logger;
     }
@@ -150,4 +150,4 @@ public class ApiController : ControllerBase
 public class DeleteAppointmentRequest
 {
     public string Id { get; set; }
-}
+} 

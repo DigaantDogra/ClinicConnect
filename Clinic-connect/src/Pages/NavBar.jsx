@@ -4,7 +4,7 @@ import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2
 
 const defaultPage = "Home"
 
-export const Navbar = () => {
+export const Navbar = ({ user = "Patient" }) => {
     let [activeIcon, setActiveIcon] = useState(defaultPage);
     const location = useLocation();
     const isDoctor = location.pathname.includes("/Doctor");
@@ -15,7 +15,7 @@ export const Navbar = () => {
           <div className="max-h-4xl mt-40 py-4">
             <SideIcon
               icon={<BsHouseFill />}
-              name="Home"
+              name={`${user}/Home`}
               isActive={activeIcon === "Home"}
               onClick={() => setActiveIcon("Home")}
             />
@@ -23,13 +23,13 @@ export const Navbar = () => {
               <>
                 <SideIcon
                   icon={<BsCalendarEvent />}
-                  name="Appointment"
+                  name={`${user}/Appointment`}
                   isActive={activeIcon === "Appointment"}
                   onClick={() => setActiveIcon("Appointment")}
                 />
                 <SideIcon
                   icon={<BsCalendar2CheckFill />}
-                  name="Availability"
+                  name={`${user}/Availability`}
                   isActive={activeIcon === "Availability"}
                   onClick={() => setActiveIcon("Availability")}
                 />
@@ -38,19 +38,19 @@ export const Navbar = () => {
               <>
                 <SideIcon
                   icon={<BsFileEarmarkPerson />}
-                  name="Search"
+                  name={`${user}/Search`}
                   isActive={activeIcon === "Search"}
                   onClick={() => setActiveIcon("Search")}
                 />
                 <SideIcon
                   icon={<BsCalendar2CheckFill />}
-                  name="Schedule"
+                  name={`${user}/Schedule`}
                   isActive={activeIcon === "Schedule"}
                   onClick={() => setActiveIcon("Schedule")}
                 />
                 <SideIcon
                   icon={<BsFileEarmarkTextFill />}
-                  name="Planner"
+                  name={`${user}/Planner`}
                   isActive={activeIcon === "Planner"}
                   onClick={() => setActiveIcon("Planner")}
                 />
@@ -63,11 +63,12 @@ export const Navbar = () => {
   };
   
   const SideIcon = ({ icon, name = "Home", isActive = false, onClick }) => {
+    const displayName = name.split('/').pop();
     return (
       <Link to={`/${name}`} onClick={onClick} className={isActive ? "sidebar-icon group" : "sidebar-icon-h group"}>
             {icon}
             <span className={`sidebar-name ${isActive ? "" : "group-hover:scale-100"}`}>
-            {name}
+            {displayName}
             </span>
       </Link>
     );
