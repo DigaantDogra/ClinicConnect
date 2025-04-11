@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import useScheduleViewModel from './ScheduleViewModel';
 import { BsTrashFill, BsPencilFill } from "react-icons/bs"
 
-export const Schedule = () => {
+export const PatientSchedule = () => {
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
   const navigate = useNavigate();
 

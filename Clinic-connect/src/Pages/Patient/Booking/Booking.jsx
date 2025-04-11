@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useBookingViewModel from './BookingViewModel';
 
-export const Booking = () => {
+export const PatientBooking = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());

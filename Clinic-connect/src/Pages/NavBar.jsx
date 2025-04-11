@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom";
-import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill , BsFileEarmarkTextFill} from "react-icons/bs"
+import { useState } from "react"
+import { Link, useLocation } from "react-router-dom";
+import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent } from "react-icons/bs"
 
 const defaultPage = "Home"
 
 export const Navbar = () => {
     let [activeIcon, setActiveIcon] = useState(defaultPage);
+    const location = useLocation();
+    const isDoctor = location.pathname.includes("/Doctor");
   
     return (
       <>
@@ -17,24 +19,43 @@ export const Navbar = () => {
               isActive={activeIcon === "Home"}
               onClick={() => setActiveIcon("Home")}
             />
-            <SideIcon
-              icon={<BsFileEarmarkPerson />}
-              name="Search"
-              isActive={activeIcon === "Search"}
-              onClick={() => setActiveIcon("Search")}
-            />
-            <SideIcon
-              icon={<BsCalendar2CheckFill />}
-              name="Schedule"
-              isActive={activeIcon === "Schedule"}
-              onClick={() => setActiveIcon("Schedule")}
-            />
-            <SideIcon
-              icon={<BsFileEarmarkTextFill />}
-              name="Planner"
-              isActive={activeIcon === "Planner"}
-              onClick={() => setActiveIcon("Planner")}
-            />
+            {isDoctor ? (
+              <>
+                <SideIcon
+                  icon={<BsCalendarEvent />}
+                  name="Appointment"
+                  isActive={activeIcon === "Appointment"}
+                  onClick={() => setActiveIcon("Appointment")}
+                />
+                <SideIcon
+                  icon={<BsCalendar2CheckFill />}
+                  name="Availability"
+                  isActive={activeIcon === "Availability"}
+                  onClick={() => setActiveIcon("Availability")}
+                />
+              </>
+            ) : (
+              <>
+                <SideIcon
+                  icon={<BsFileEarmarkPerson />}
+                  name="Search"
+                  isActive={activeIcon === "Search"}
+                  onClick={() => setActiveIcon("Search")}
+                />
+                <SideIcon
+                  icon={<BsCalendar2CheckFill />}
+                  name="Schedule"
+                  isActive={activeIcon === "Schedule"}
+                  onClick={() => setActiveIcon("Schedule")}
+                />
+                <SideIcon
+                  icon={<BsFileEarmarkTextFill />}
+                  name="Planner"
+                  isActive={activeIcon === "Planner"}
+                  onClick={() => setActiveIcon("Planner")}
+                />
+              </>
+            )}
           </div>
         </div>
       </>
