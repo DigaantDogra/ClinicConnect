@@ -1,11 +1,12 @@
 import { BackgroundCanvas } from "../../BackgroundCanvas";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from 'react';
 import useScheduleViewModel from './ScheduleViewModel';
-import { BsTrashFill , BsPencilFill } from "react-icons/bs"
+import { BsTrashFill, BsPencilFill } from "react-icons/bs"
 
 export const Schedule = () => {
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAppointments();
@@ -15,6 +16,11 @@ export const Schedule = () => {
     if (window.confirm('Are you sure you want to delete this appointment?')) {
       await deleteAppointment(appointmentId);
     }
+  };
+
+  const handleEditClick = (appointment) => {
+    // Navigate to Booking page with appointment data
+    navigate('/Booking', { state: { appointment } });
   };
 
   if (isLoading) return <BackgroundCanvas section={<div>Loading appointments...</div>} />;
@@ -39,7 +45,7 @@ export const Schedule = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -50,20 +56,22 @@ export const Schedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctor}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <button
-                      onClick={() => handleDeleteClick(appointment.id)}
-                      className="text-red-500 text-xl/snug hover:text-red-700"
-                    >
-                      <BsTrashFill />
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <button
-                      // onClick={() => handleDeleteClick(appointment.id)}
-                      className="text-blue-500 text-xl/snug hover:text-blue-700"
-                    >
-                      <BsPencilFill />
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(appointment)}
+                        className="text-blue-500 text-xl/snug hover:text-blue-700"
+                        title="Edit Appointment"
+                      >
+                        <BsPencilFill />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(appointment.id)}
+                        className="text-red-500 text-xl/snug hover:text-red-700"
+                        title="Delete Appointment"
+                      >
+                        <BsTrashFill />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

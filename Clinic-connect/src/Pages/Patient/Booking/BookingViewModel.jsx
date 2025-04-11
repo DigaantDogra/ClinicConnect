@@ -8,19 +8,25 @@ const useBookingViewModel = () => {
   const submitBooking = useCallback(async (appointmentData) => {
     setIsLoading(true);
     try {
-      console.log('BookingViewModel.jsx - Received appointment data:', appointmentData);
-      
       const formattedDate = new Date(appointmentData.date).toISOString().split('T')[0];
       const appointment = {
+        Id: appointmentData.id,
         Date: formattedDate,
         Time: appointmentData.time,
         Reason: appointmentData.reason,
         Day: new Date(appointmentData.date).toLocaleDateString('en-US', { weekday: 'long' }),
-        Email: "example@example.com" // This should be replaced with actual user email
+        Email: "example@example.com"
       };
 
-      console.log('BookingViewModel.jsx - Formatted appointment:', appointment);
-      const response = await ApiService.createAppointment(appointment);
+      let response;
+      if (appointmentData.id) {
+        // If there's an ID, it's an edit operation
+        response = await ApiService.editAppointment(appointment);
+      } else {
+        // If no ID, it's a new appointment
+        response = await ApiService.createAppointment(appointment);
+      }
+
       setError(null);
       return true;
     } catch (error) {

@@ -1,15 +1,32 @@
 import { BackgroundCanvas } from "../../BackgroundCanvas"
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useBookingViewModel from './BookingViewModel';
 
 export const Booking = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [availability, setAvailability] = useState({});
   const [reason, setReason] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [appointmentId, setAppointmentId] = useState(null);
   
   const { isLoading, error, submitBooking } = useBookingViewModel();
+
+  useEffect(() => {
+    // Check if we're in edit mode
+    if (location.state?.appointment) {
+      const { appointment } = location.state;
+      setIsEditMode(true);
+      setAppointmentId(appointment.id);
+      setSelectedDate(appointment.date);
+      setSelectedTime(appointment.time);
+      setReason(appointment.reason);
+    }
+  }, [location.state]);
 
   // Simulate fetching availability data (replace with API call)
   useEffect(() => {
@@ -18,6 +35,7 @@ export const Booking = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
+    // Generate available dates (excluding weekends and random days)
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
@@ -101,6 +119,7 @@ export const Booking = () => {
     }
 
     const appointmentData = {
+      id: appointmentId,
       date: selectedDate,
       time: selectedTime,
       reason: reason
@@ -110,7 +129,7 @@ export const Booking = () => {
     
     if (success) {
       // Redirect to schedule page on success
-      window.location.href = '/Schedule';
+      navigate('/Schedule');
     }
   };
 
@@ -233,13 +252,15 @@ export const Booking = () => {
           />
         </div>
 
-        <button 
-          onClick={handleBookNow}
-          className="items-center mt-17 bg-blue-500 max-w-25 p-3 text-white rounded-2xl hover:translate-y-0.5 transition-all"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Booking...' : 'Book Now'}
-        </button>
+        <div className="mt-6">
+          <button
+            onClick={handleBookNow}
+            disabled={isLoading}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-blue-300"
+          >
+            {isLoading ? 'Saving...' : isEditMode ? 'Update Appointment' : 'Book Now'}
+          </button>
+        </div>
       </div>
     </div>
   }/>
