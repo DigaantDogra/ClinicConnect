@@ -2,6 +2,7 @@ import { BackgroundCanvas } from "../../BackgroundCanvas";
 import { Link } from "react-router-dom";
 import { useEffect } from 'react';
 import useScheduleViewModel from './ScheduleViewModel';
+import { BsTrashFill } from "react-icons/bs"
 
 export const Schedule = () => {
   const { appointments, isLoading, error, fetchAppointments } = useScheduleViewModel();
@@ -32,6 +33,7 @@ export const Schedule = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -41,6 +43,11 @@ export const Schedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.time}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctor}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <button className="text-red-500 text-xl/snug hover:text-red-700">
+                      <BsTrashFill />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
