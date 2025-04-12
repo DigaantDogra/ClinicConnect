@@ -1,7 +1,7 @@
 // Controllers/CarePlanController.cs
 using Microsoft.AspNetCore.Mvc;
 using ClinicConnectService.Services;
-using ClinicConnectService.Helpers;
+using ClinicConnectService.Models;
 
 namespace ClinicConnectService.Controllers
 {
@@ -10,28 +10,31 @@ namespace ClinicConnectService.Controllers
     public class CarePlanController : ControllerBase
     {
         private readonly ICarePlanService _carePlanService;
+        private readonly ILogger<CarePlanController> _logger;
 
-        public CarePlanController(ICarePlanService carePlanService)
+        public CarePlanController(ICarePlanService carePlanService, ILogger<CarePlanController> logger)
         {
             _carePlanService = carePlanService;
+            _logger = logger;
         }
 
         [HttpPost]
-        public async Task<ActionResult<string>> GenerateCarePlan([FromBody] string rawPrompt)
+        public async Task<IActionResult> GenerateCarePlan([FromBody] StructuredPrompt prompt)
         {
             try
             {
-                // Get structured prompt for BioMistral
-                var structuredPrompt = CarePlanPromptBuilder.Build(rawPrompt);
-
-                // Call Colab API
-                var generatedPlan = await _carePlanService.GenerateCarePlan(structuredPrompt);
-
-                return Ok(generatedPlan);
+                _logger.LogInformation("Received request to generate care plan");
+                
+                // Generate care plan using the service
+                var carePlan = await _carePlanService.GenerateCarePlanAsync(prompt);
+                
+                _logger.LogInformation("Successfully generated care plan");
+                return Ok(new { plan = carePlan });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error generating care plan: {ex.Message}");
+                _logger.LogError(ex, "Error generating care plan");
+                return StatusCode(500, new { error = "An error occurred while generating the care plan" });
             }
         }
     }

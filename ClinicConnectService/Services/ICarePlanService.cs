@@ -5,6 +5,6 @@ namespace ClinicConnectService.Services
 {
     public interface ICarePlanService
     {
-        Task<string> GenerateCarePlan(StructuredPrompt prompt);
+        Task<string> GenerateCarePlanAsync(StructuredPrompt prompt);
     }
 }

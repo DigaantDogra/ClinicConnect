@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiPlusCircle, FiArrowRight } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const GeneratePlanPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -9,6 +10,7 @@ const GeneratePlanPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [patients, setPatients] = useState([]);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   // Mock patient data - replace with API call
   const mockPatients = [
@@ -31,11 +33,43 @@ const GeneratePlanPage = () => {
   const handleGenerate = async () => {
     try {
       setIsLoading(true);
-      // Implement AI generation logic
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Navigate to draft page after generation
+      setError(null);
+      
+      const response = await fetch('http://localhost:5276/api/careplan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profile: `${selectedPatient.name}, ${selectedPatient.age} years old`,
+          condition: medicalPrompt.split(',')[0] || 'General Health',
+          subtype: medicalPrompt.split(',')[1] || 'Standard Care',
+          comorbidities: selectedPatient.conditions
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate care plan');
+      }
+
+      const data = await response.json();
+      
+      // Store the generated plan in localStorage
+      const planData = {
+        plan: data.plan,
+        patient: {
+          name: selectedPatient.name,
+          age: selectedPatient.age,
+          conditions: selectedPatient.conditions,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem('generatedPlan', JSON.stringify(planData));
+      
+      // Navigate to DraftPlanPage
+      navigate('/Doctor/DraftPlan');
     } catch (err) {
-      setError('Failed to generate plan. Please try again.');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +177,7 @@ const GeneratePlanPage = () => {
 
                   <button
                     onClick={handleGenerate}
-                    disabled={!medicalPrompt || isLoading}
+                    disabled={!medicalPrompt || isLoading || !selectedPatient}
                     className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl text-white font-medium flex items-center justify-center transition-all"
                   >
                     {isLoading ? (
