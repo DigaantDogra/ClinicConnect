@@ -46,7 +46,8 @@ public class DoctorApiController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Received availability creation request: {@Availability}", availability);
+            _logger.LogInformation("Received availability creation request for date {Date} at {TimeSlot}", 
+                availability.Date, availability.TimeSlot);
             
             if (!ModelState.IsValid)
             {
@@ -54,11 +55,18 @@ public class DoctorApiController : ControllerBase
                 return BadRequest(ModelState);
             }
 
+            availability.Id = Guid.NewGuid().ToString();
+            availability.DoctorEmail = "doctor@example.com"; // This should come from authentication
+            availability.IsAvailable = true;
             DataStorage.Availabilities.Add(availability);
-            _logger.LogInformation("Availability added successfully. Total availabilities: {Count}", 
-                DataStorage.Availabilities.Count);
+
+            _logger.LogInformation("Added availability slot successfully for date {Date} at {TimeSlot}", 
+                availability.Date, availability.TimeSlot);
             
-            return CreatedAtAction(nameof(GetAvailabilities), availability);
+            return Ok(new { 
+                message = "Availability added successfully",
+                availability = availability
+            });
         }
         catch (Exception ex)
         {
@@ -88,41 +96,4 @@ public class DoctorApiController : ControllerBase
             return StatusCode(500, "An error occurred while retrieving availabilities");
         }
     }
-
-    [HttpDelete("availability")]
-    public IActionResult DeleteAvailability([FromBody] DeleteAvailabilityRequest request)
-    {
-        try
-        {
-            _logger.LogInformation("Received availability deletion request for ID: {Id}", request.Id);
-            
-            if (string.IsNullOrEmpty(request.Id))
-            {
-                _logger.LogWarning("No availability ID provided in delete request");
-                return BadRequest("Availability ID is required");
-            }
-
-            var availability = DataStorage.Availabilities.FirstOrDefault(a => a.Id == request.Id);
-            if (availability == null)
-            {
-                _logger.LogWarning("Availability with ID {Id} not found", request.Id);
-                return NotFound($"Availability with ID {request.Id} not found");
-            }
-
-            DataStorage.Availabilities.Remove(availability);
-            _logger.LogInformation("Availability with ID {Id} deleted successfully", request.Id);
-            
-            return Ok(new { message = "Availability deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting availability");
-            return StatusCode(500, "An error occurred while deleting the availability");
-        }
-    }
-}
-
-public class DeleteAvailabilityRequest
-{
-    public string Id { get; set; }
 } 

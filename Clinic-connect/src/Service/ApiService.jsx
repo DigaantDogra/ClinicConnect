@@ -1,5 +1,7 @@
 class ApiService {
-    static baseUrl = 'http://localhost:5276/patient';
+    static baseUrl = 'http://localhost:5276';
+    static patientBaseUrl = `${this.baseUrl}/patient`;
+    static doctorBaseUrl = `${this.baseUrl}/doctor`;
   
     static async getHeaders() {
       const token = localStorage.getItem('authToken');
@@ -11,11 +13,11 @@ class ApiService {
   
     static async createAppointment(appointment) {
       try {
-        console.log('Attempting to create appointment at:', `${this.baseUrl}/appointment/create`);
+        console.log('Attempting to create appointment at:', `${this.patientBaseUrl}/appointment/create`);
         console.log('Request headers:', await this.getHeaders());
         console.log('Request body:', JSON.stringify(appointment));
 
-        const response = await fetch(`${this.baseUrl}/appointment/create`, {
+        const response = await fetch(`${this.patientBaseUrl}/appointment/create`, {
           method: 'POST',
           headers: await this.getHeaders(),
           body: JSON.stringify(appointment),
@@ -44,8 +46,8 @@ class ApiService {
 
     static async getAppointments() {
       try {
-        console.log('Attempting to fetch appointments from:', `${this.baseUrl}/appointment/get`);
-        const response = await fetch(`${this.baseUrl}/appointment/get`, {
+        console.log('Attempting to fetch appointments from:', `${this.patientBaseUrl}/appointment/get`);
+        const response = await fetch(`${this.patientBaseUrl}/appointment/get`, {
           method: 'GET',
           headers: await this.getHeaders(),
           mode: 'cors' // Explicitly set CORS mode
@@ -74,7 +76,7 @@ class ApiService {
     static async deleteAppointment(appointmentId) {
       try {
         console.log('Attempting to delete appointment with ID:', appointmentId);
-        const response = await fetch(`${this.baseUrl}/appointment/delete`, {
+        const response = await fetch(`${this.patientBaseUrl}/appointment/delete`, {
           method: 'DELETE',
           headers: await this.getHeaders(),
           body: JSON.stringify({ id: appointmentId })
@@ -96,7 +98,7 @@ class ApiService {
     static async editAppointment(appointmentData) {
       try {
         console.log('Attempting to edit appointment:', appointmentData);
-        const response = await fetch(`${this.baseUrl}/appointment/edit`, {
+        const response = await fetch(`${this.patientBaseUrl}/appointment/edit`, {
           method: 'PUT',
           headers: await this.getHeaders(),
           body: JSON.stringify(appointmentData)
@@ -111,6 +113,86 @@ class ApiService {
         return true;
       } catch (error) {
         console.error('Error editing appointment:', error);
+        throw error;
+      }
+    }
+
+    // Doctor API endpoints
+    static async getDoctorAppointments() {
+      try {
+        console.log('Fetching doctor appointments from:', `${this.doctorBaseUrl}/appointments`);
+        const response = await fetch(`${this.doctorBaseUrl}/appointments`, {
+          method: 'GET',
+          headers: await this.getHeaders()
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Doctor appointments fetched successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching doctor appointments:', error);
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Cannot connect to the server. Please ensure the backend is running at http://localhost:5276');
+        }
+        throw error;
+      }
+    }
+
+    static async addAvailability(availability) {
+      try {
+        console.log('Adding availability:', availability);
+        const response = await fetch(`${this.doctorBaseUrl}/availability`, {
+          method: 'POST',
+          headers: await this.getHeaders(),
+          body: JSON.stringify(availability)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Availability added successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Error adding availability:', error);
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Cannot connect to the server. Please ensure the backend is running at http://localhost:5276');
+        }
+        throw error;
+      }
+    }
+
+    static async getDoctorAvailabilities() {
+      try {
+        console.log('Fetching doctor availabilities from:', `${this.doctorBaseUrl}/availability`);
+        const response = await fetch(`${this.doctorBaseUrl}/availability`, {
+          method: 'GET',
+          headers: await this.getHeaders()
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Doctor availabilities fetched successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching doctor availabilities:', error);
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Cannot connect to the server. Please ensure the backend is running at http://localhost:5276');
+        }
         throw error;
       }
     }
