@@ -1,5 +1,6 @@
 import { BackgroundCanvas } from "../../BackgroundCanvas";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useAvailabilityViewModel from './AvailabilityViewModel';
 
 export const DoctorAvailability = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -8,8 +9,28 @@ export const DoctorAvailability = () => {
   const [availability, setAvailability] = useState({});
   const [dateRange, setDateRange] = useState({ start: null, end: null });
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    availabilities,
+    isLoading,
+    error,
+    successMessage,
+    fetchAvailabilities,
+    addAvailability,
+    clearMessages
+  } = useAvailabilityViewModel();
+
+  useEffect(() => {
+    fetchAvailabilities();
+  }, [fetchAvailabilities]);
 
   const handleDateSelect = (date) => {
+    // Don't allow selection if date has existing availabilities
+    if (isDateInFetchedRange(date)) {
+      return;
+    }
+
     if (!dateRange.start || dateRange.end) {
       // Start new range
       setDateRange({ start: date, end: null });
@@ -29,6 +50,13 @@ export const DoctorAvailability = () => {
     return date >= dateRange.start && date <= dateRange.end;
   };
 
+  const isDateInFetchedRange = (date) => {
+    return availabilities.some(avail => {
+      const availDate = new Date(avail.date);
+      return availDate.toDateString() === date.toDateString();
+    });
+  };
+
   const handleTimeSelect = (time) => {
     setSelectedTimeSlots(prev => {
       if (prev.includes(time)) {
@@ -37,6 +65,45 @@ export const DoctorAvailability = () => {
         return [...prev, time];
       }
     });
+  };
+
+  const handleSaveAvailability = async () => {
+    if (selectedTimeSlots.length === 0 || !dateRange.start || !dateRange.end) return;
+
+    setIsSaving(true);
+    clearMessages();
+
+    try {
+      // Create availability for each day in the range and each time slot
+      const savePromises = [];
+      let currentDate = new Date(dateRange.start);
+
+      while (currentDate <= dateRange.end) {
+        for (const timeSlot of selectedTimeSlots) {
+          const availability = {
+            date: currentDate.toISOString().split('T')[0],
+            timeSlot: timeSlot,
+            isAvailable: true
+          };
+          savePromises.push(addAvailability(availability));
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Wait for all availability saves to complete
+      await Promise.all(savePromises);
+
+      // Refresh the availabilities list
+      await fetchAvailabilities();
+
+      // Clear the selection
+      setDateRange({ start: null, end: null });
+      setSelectedTimeSlots([]);
+    } catch (err) {
+      console.error('Error saving availability:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const generateTimeSlots = () => {
@@ -90,6 +157,7 @@ export const DoctorAvailability = () => {
                 const isToday = date.toDateString() === currentTime.toDateString();
                 const isDisabled = date < new Date(new Date().setHours(0,0,0,0)) || (isToday && isPast6PM);
                 const isInRange = isDateInRange(date);
+                const isInFetchedRange = isDateInFetchedRange(date);
                 const isRangeStart = dateRange.start && date.getTime() === dateRange.start.getTime();
                 const isRangeEnd = dateRange.end && date.getTime() === dateRange.end.getTime();
 
@@ -97,19 +165,34 @@ export const DoctorAvailability = () => {
                   <button
                     key={i}
                     onClick={() => handleDateSelect(date)}
-                    className={`p-2 rounded-full hover:bg-gray-100 ${
+                    className={`p-2 rounded-full ${
+                      isInFetchedRange 
+                        ? 'bg-cyan-200 cursor-not-allowed' 
+                        : 'hover:bg-gray-100'
+                    } ${
                       isInRange ? 'bg-blue-200' : ''
                     } ${
                       isRangeStart || isRangeEnd ? 'bg-blue-500 text-white' : ''
                     } ${
                       isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    disabled={isDisabled}
+                    disabled={isDisabled || isInFetchedRange}
+                    title={isInFetchedRange ? "This date already has availability slots" : ""}
                   >
                     {i + 1}
                   </button>
                 );
               })}
+            </div>
+            <div className="mt-4 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-cyan-200 rounded-full"></div>
+                <span>Existing Availability</span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-4 h-4 bg-blue-200 rounded-full"></div>
+                <span>Selected Range</span>
+              </div>
             </div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
@@ -127,6 +210,7 @@ export const DoctorAvailability = () => {
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
                       }`}
+                      disabled={isSaving}
                     >
                       {time}
                     </button>
@@ -134,16 +218,28 @@ export const DoctorAvailability = () => {
                 </div>
                 <div className="mt-4">
                   <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={() => {
-                      // Here you would save the selected time slots for the date range
-                      console.log('Selected time slots:', selectedTimeSlots);
-                      console.log('For date range:', formatDateRange());
-                    }}
+                    className={`px-4 py-2 rounded ${
+                      selectedTimeSlots.length > 0 && !isSaving
+                        ? 'bg-blue-500 text-white hover:bg-blue-600'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                    onClick={handleSaveAvailability}
+                    disabled={selectedTimeSlots.length === 0 || isSaving}
+                    title={selectedTimeSlots.length === 0 ? "Please select at least one time slot" : ""}
                   >
-                    Save Availability
+                    {isSaving ? 'Saving...' : 'Save Availability'}
                   </button>
                 </div>
+                {error && (
+                  <div className="mt-4 text-red-500">
+                    {error}
+                  </div>
+                )}
+                {successMessage && (
+                  <div className="mt-4 text-green-500">
+                    {successMessage}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">

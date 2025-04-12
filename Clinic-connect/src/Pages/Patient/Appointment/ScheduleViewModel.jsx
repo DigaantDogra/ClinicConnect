@@ -10,7 +10,8 @@ const useScheduleViewModel = () => {
     setIsLoading(true);
     try {
       console.log('Fetching appointments...');
-      const data = await ApiService.getAppointments();
+      const patientEmail = "example@example.com"; // This should come from authentication
+      const data = await ApiService.getAppointments(patientEmail);
       console.log('Raw API Response:', data);
       
       if (!Array.isArray(data)) {
@@ -23,9 +24,10 @@ const useScheduleViewModel = () => {
         return {
           id: appt.id,
           date: appt.date || 'N/A',
-          time: appt.time || 'N/A',
-          // doctor: appt.DoctorName || 'Dr. Jacob Jones',
-          reason: appt.reason || 'N/A'
+          time: appt.timeSlot || 'N/A',
+          doctorEmail: appt.doctorEmail || 'N/A',
+          reason: appt.reason || 'N/A',
+          isConfirmed: appt.isConfirmed
         };
       });
       

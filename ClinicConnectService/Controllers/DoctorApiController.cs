@@ -19,12 +19,11 @@ public class DoctorApiController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("appointments")]
-    public IActionResult GetDoctorAppointments()
+    [HttpGet("appointments/{doctorEmail}")]
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetAppointments(string doctorEmail)
     {
         try
-        {
-            var doctorEmail = "doctor@example.com"; // This should come from authentication
+        { // This should come from authentication
             var appointments = DataStorage.Appointments
                 .Where(a => a.DoctorEmail == doctorEmail)
                 .ToList();
@@ -75,12 +74,11 @@ public class DoctorApiController : ControllerBase
         }
     }
 
-    [HttpGet("availability")]
-    public IActionResult GetAvailabilities()
+    [HttpGet("availability/{doctorEmail}")]
+    public async Task<ActionResult<IEnumerable<Availability>>> GetAvailabilities(string doctorEmail)
     {
         try
         {
-            var doctorEmail = "doctor@example.com"; // This should come from authentication
             var availabilities = DataStorage.Availabilities
                 .Where(a => a.DoctorEmail == doctorEmail)
                 .ToList();

@@ -13,15 +13,15 @@ class ApiService {
   
     static async createAppointment(appointment) {
       try {
-        console.log('Attempting to create appointment at:', `${this.patientBaseUrl}/appointment/create`);
+        console.log('Attempting to create appointment at:', `${this.patientBaseUrl}/appointments`);
         console.log('Request headers:', await this.getHeaders());
         console.log('Request body:', JSON.stringify(appointment));
 
-        const response = await fetch(`${this.patientBaseUrl}/appointment/create`, {
+        const response = await fetch(`${this.patientBaseUrl}/appointments`, {
           method: 'POST',
           headers: await this.getHeaders(),
           body: JSON.stringify(appointment),
-          mode: 'cors' // Explicitly set CORS mode
+          mode: 'cors'
         });
 
         console.log('Response status:', response.status);
@@ -44,13 +44,13 @@ class ApiService {
       }
     }
 
-    static async getAppointments() {
+    static async getAppointments(patientEmail) {
       try {
-        console.log('Attempting to fetch appointments from:', `${this.patientBaseUrl}/appointment/get`);
-        const response = await fetch(`${this.patientBaseUrl}/appointment/get`, {
+        console.log('Attempting to fetch appointments from:', `${this.patientBaseUrl}/appointments/${patientEmail}`);
+        const response = await fetch(`${this.patientBaseUrl}/appointments/${patientEmail}`, {
           method: 'GET',
           headers: await this.getHeaders(),
-          mode: 'cors' // Explicitly set CORS mode
+          mode: 'cors'
         });
 
         console.log('Response status:', response.status);
@@ -76,10 +76,9 @@ class ApiService {
     static async deleteAppointment(appointmentId) {
       try {
         console.log('Attempting to delete appointment with ID:', appointmentId);
-        const response = await fetch(`${this.patientBaseUrl}/appointment/delete`, {
+        const response = await fetch(`${this.patientBaseUrl}/appointments/${appointmentId}`, {
           method: 'DELETE',
-          headers: await this.getHeaders(),
-          body: JSON.stringify({ id: appointmentId })
+          headers: await this.getHeaders()
         });
         
         if (!response.ok) {
@@ -118,10 +117,10 @@ class ApiService {
     }
 
     // Doctor API endpoints
-    static async getDoctorAppointments() {
+    static async getDoctorAppointments(doctorEmail) {
       try {
-        console.log('Fetching doctor appointments from:', `${this.doctorBaseUrl}/appointments`);
-        const response = await fetch(`${this.doctorBaseUrl}/appointments`, {
+        console.log('Fetching doctor appointments from:', `${this.doctorBaseUrl}/appointments/${doctorEmail}`);
+        const response = await fetch(`${this.doctorBaseUrl}/appointments/${doctorEmail}`, {
           method: 'GET',
           headers: await this.getHeaders()
         });
@@ -171,10 +170,10 @@ class ApiService {
       }
     }
 
-    static async getDoctorAvailabilities() {
+    static async getDoctorAvailabilities(doctorEmail) {
       try {
-        console.log('Fetching doctor availabilities from:', `${this.doctorBaseUrl}/availability`);
-        const response = await fetch(`${this.doctorBaseUrl}/availability`, {
+        console.log('Fetching doctor availabilities from:', `${this.doctorBaseUrl}/availability/${doctorEmail}`);
+        const response = await fetch(`${this.doctorBaseUrl}/availability/${doctorEmail}`, {
           method: 'GET',
           headers: await this.getHeaders()
         });

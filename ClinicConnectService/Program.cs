@@ -12,7 +12,6 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
@@ -21,13 +20,6 @@ var app = builder.Build();
 app.UseCors();
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-}
-
 app.UseAuthorization();
 
 app.MapControllers();
