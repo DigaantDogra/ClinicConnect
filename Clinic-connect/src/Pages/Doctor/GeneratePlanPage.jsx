@@ -54,7 +54,7 @@ const GeneratePlanPage = () => {
 
       const data = await response.json();
       
-      // Store the generated plan in localStorage
+      // Storing the generated plan in localStorage since Firebase is not implemented now
       const planData = {
         plan: data.plan,
         patient: {
@@ -66,7 +66,7 @@ const GeneratePlanPage = () => {
       };
       localStorage.setItem('generatedPlan', JSON.stringify(planData));
       
-      // Navigate to DraftPlanPage
+      // Navigate to the DraftPlanPage once the plan is generated 
       navigate('/Doctor/DraftPlan');
     } catch (err) {
       setError(err.message);

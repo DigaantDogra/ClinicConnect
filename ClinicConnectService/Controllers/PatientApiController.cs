@@ -1,156 +1,134 @@
-// using System;
-// using System.Collections.Generic;
-// using System.Linq;
-// using System.Threading.Tasks;
-// using ClinicConnectService.Model;
-// using Microsoft.AspNetCore.Mvc;
-// using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using ClinicConnectService.Model;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
-// namespace ClinicConnectService.Controllers;
+namespace ClinicConnectService.Controllers;
 
-// public static class DataStorage
-// {
-//     public static List<Appointment> Appointments = new List<Appointment>();
-//     public static List<Availability> Availabilities = new List<Availability>();
-//     // public static List<User> Users = new List<User>();
-// }
+[ApiController]
+[Route("patient")]
+public class PatientApiController : ControllerBase
+{
+    private readonly ILogger<PatientApiController> _logger;
 
-// [ApiController]
-// [Route("patient")]
-// public class PatientApiController : ControllerBase
-// {
-//     private readonly ILogger<PatientApiController> _logger;
+    public PatientApiController(ILogger<PatientApiController> logger)
+    {
+        _logger = logger;
+    }
 
-//     public PatientApiController(ILogger<PatientApiController> logger)
-//     {
-//         _logger = logger;
-//     }
-
-//     [HttpPost("appointment/create")]
-//     public IActionResult CreateAppointment([FromBody] Appointment appointment)
-//     {
-//         try
-//         {
-//             _logger.LogInformation("Received appointment creation request: {@Appointment}", appointment);
+    [HttpGet("appointments")]
+    public IActionResult GetPatientAppointments()
+    {
+        try
+        {
+            var patientEmail = "patient@example.com"; // This should come from authentication
+            var appointments = DataStorage.Appointments
+                .Where(a => a.PatientEmail == patientEmail)
+                .ToList();
             
-//             // Set patient email from authentication context
-//             appointment.Email = "example@example.com";
+            _logger.LogInformation("Retrieved {Count} appointments for patient {Email}", 
+                appointments.Count, patientEmail);
             
-//             // Add validation logic here
-//             if (!ModelState.IsValid)
-//             {
-//                 _logger.LogWarning("Invalid appointment data: {@ModelState}", ModelState);
-//                 return BadRequest(ModelState);
-//             }
+            return Ok(appointments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving patient appointments");
+            return StatusCode(500, "An error occurred while retrieving appointments");
+        }
+    }
 
-//             DataStorage.Appointments.Add(appointment);
-//             _logger.LogInformation("Appointment added successfully. Total appointments: {Count}", DataStorage.Appointments.Count);
+    [HttpPost("appointments")]
+    public IActionResult BookAppointment([FromBody] Appointment appointment)
+    {
+        try
+        {
+            _logger.LogInformation("Received appointment booking request: {@Appointment}", appointment);
             
-//             return CreatedAtAction(nameof(GetAppointments), appointment);
-//         }
-//         catch (Exception ex)
-//         {
-//             _logger.LogError(ex, "Error creating appointment");
-//             return StatusCode(500, "An error occurred while creating the appointment");
-//         }
-//     }
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid appointment data: {@ModelState}", ModelState);
+                return BadRequest(ModelState);
+            }
 
-//     [HttpGet("appointment/get")]
-//     public IActionResult GetAppointments()
-//     {
-//         try
-//         {
-//             var patientEmail = "example@example.com";
-//             var appointments = DataStorage.Appointments.Where(a => a.Email == patientEmail).ToList();
+            // Check if the doctor is available at the requested time
+            var isAvailable = DataStorage.Availabilities.Any(a => 
+                a.DoctorEmail == appointment.DoctorEmail &&
+                a.StartTime <= appointment.StartTime &&
+                a.EndTime >= appointment.EndTime);
+
+            if (!isAvailable)
+            {
+                _logger.LogWarning("Doctor {Email} is not available at the requested time", 
+                    appointment.DoctorEmail);
+                return BadRequest("Doctor is not available at the requested time");
+            }
+
+            // Check if there's already an appointment at that time
+            var hasConflict = DataStorage.Appointments.Any(a =>
+                a.DoctorEmail == appointment.DoctorEmail &&
+                ((a.StartTime <= appointment.StartTime && a.EndTime > appointment.StartTime) ||
+                 (a.StartTime < appointment.EndTime && a.EndTime >= appointment.EndTime)));
+
+            if (hasConflict)
+            {
+                _logger.LogWarning("Time slot conflict for doctor {Email}", appointment.DoctorEmail);
+                return BadRequest("Time slot is already booked");
+            }
+
+            DataStorage.Appointments.Add(appointment);
+            _logger.LogInformation("Appointment booked successfully. Total appointments: {Count}", 
+                DataStorage.Appointments.Count);
             
-//             _logger.LogInformation("Retrieved {Count} appointments for email {Email}", 
-//                 appointments.Count, patientEmail);
-//             _logger.LogInformation("Appointments: {@Appointments}", appointments);
+            return CreatedAtAction(nameof(GetPatientAppointments), appointment);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error booking appointment");
+            return StatusCode(500, "An error occurred while booking the appointment");
+        }
+    }
+
+    [HttpDelete("appointments/{id}")]
+    public IActionResult CancelAppointment(string id)
+    {
+        try
+        {
+            _logger.LogInformation("Received appointment cancellation request for ID: {Id}", id);
             
-//             return Ok(appointments);
-//         }
-//         catch (Exception ex)
-//         {
-//             _logger.LogError(ex, "Error retrieving appointments");
-//             return StatusCode(500, "An error occurred while retrieving appointments");
-//         }
-//     }
+            if (string.IsNullOrEmpty(id))
+            {
+                _logger.LogWarning("No appointment ID provided in cancel request");
+                return BadRequest("Appointment ID is required");
+            }
 
-//     [HttpDelete("appointment/delete")]
-//     public IActionResult DeleteAppointment([FromBody] DeleteAppointmentRequest request)
-//     {
-//         try
-//         {
-//             _logger.LogInformation("Received appointment deletion request for ID: {Id}", request.Id);
+            var appointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == id);
+            if (appointment == null)
+            {
+                _logger.LogWarning("Appointment with ID {Id} not found", id);
+                return NotFound($"Appointment with ID {id} not found");
+            }
+
+            DataStorage.Appointments.Remove(appointment);
+            _logger.LogInformation("Appointment with ID {Id} cancelled successfully", id);
             
-//             if (string.IsNullOrEmpty(request.Id))
-//             {
-//                 _logger.LogWarning("No appointment ID provided in delete request");
-//                 return BadRequest("Appointment ID is required");
-//             }
+            return Ok(new { message = "Appointment cancelled successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling appointment");
+            return StatusCode(500, "An error occurred while cancelling the appointment");
+        }
+    }
+}
 
-//             var appointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == request.Id);
-//             if (appointment == null)
-//             {
-//                 _logger.LogWarning("Appointment with ID {Id} not found", request.Id);
-//                 return NotFound($"Appointment with ID {request.Id} not found");
-//             }
-
-//             DataStorage.Appointments.Remove(appointment);
-//             _logger.LogInformation("Appointment with ID {Id} deleted successfully", request.Id);
-            
-//             return Ok(new { message = "Appointment deleted successfully" });
-//         }
-//         catch (Exception ex)
-//         {
-//             _logger.LogError(ex, "Error deleting appointment");
-//             return StatusCode(500, "An error occurred while deleting the appointment");
-//         }
-//     }
-
-//     [HttpPut("appointment/edit")]
-//     public IActionResult EditAppointment([FromBody] Appointment updatedAppointment)
-//     {
-//         try
-//         {
-//             _logger.LogInformation("Received appointment edit request: {@Appointment}", updatedAppointment);
-            
-//             if (string.IsNullOrEmpty(updatedAppointment.Id))
-//             {
-//                 _logger.LogWarning("No appointment ID provided in edit request");
-//                 return BadRequest("Appointment ID is required");
-//             }
-
-//             var existingAppointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == updatedAppointment.Id);
-//             if (existingAppointment == null)
-//             {
-//                 _logger.LogWarning("Appointment with ID {Id} not found", updatedAppointment.Id);
-//                 return NotFound($"Appointment with ID {updatedAppointment.Id} not found");
-//             }
-
-//             // Update the appointment properties
-//             existingAppointment.Date = updatedAppointment.Date;
-//             existingAppointment.Time = updatedAppointment.Time;
-//             existingAppointment.Reason = updatedAppointment.Reason;
-//             existingAppointment.Day = updatedAppointment.Day;
-//             existingAppointment.Email = updatedAppointment.Email;
-
-//             _logger.LogInformation("Appointment with ID {Id} updated successfully", updatedAppointment.Id);
-            
-//             return Ok(new { message = "Appointment updated successfully" });
-//         }
-//         catch (Exception ex)
-//         {
-//             _logger.LogError(ex, "Error updating appointment");
-//             return StatusCode(500, "An error occurred while updating the appointment");
-//         }
-//     }
-// }
-
-// public class DeleteAppointmentRequest
-// {
-//     public string Id { get; set; }
-// }
+public class DeleteAppointmentRequest
+{
+    public string Id { get; set; }
+}
 
 /*
 // Temporarily commented out for testing care plan functionality
