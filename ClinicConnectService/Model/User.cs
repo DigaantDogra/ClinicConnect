@@ -6,7 +6,7 @@ namespace ClinicConnectService.Model;
 public class User
 {
     [FirestoreProperty]
-    public string Id { get; set; } = string.Empty;
+    public string Id { get; set; } 
     
     [FirestoreProperty]
     public string UserName { get; set; } = string.Empty;

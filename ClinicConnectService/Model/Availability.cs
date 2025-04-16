@@ -6,7 +6,7 @@ namespace ClinicConnectService.Model;
 public class Availability
 {
     [FirestoreProperty]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; }
     
     [FirestoreProperty]
     public string DoctorId { get; set; } = string.Empty;
