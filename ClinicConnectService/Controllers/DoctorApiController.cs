@@ -5,6 +5,7 @@ using ClinicConnectService.Model;
 using ClinicConnectService.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace ClinicConnectService.Controllers;
 
@@ -73,10 +74,12 @@ public class DoctorApiController : ControllerBase
             }
 
             // Check for existing availability at the same time
-            var existingAvailability = await _firebaseService.QueryCollection<Availability>("availabilities",
-                new { DoctorId = availability.DoctorId, Date = availability.Date, TimeSlot = availability.TimeSlot });
+            var existingAvailability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", availability.DoctorId);
+            var conflictingSlot = existingAvailability.FirstOrDefault(a => 
+                a.Date == availability.Date && 
+                a.TimeSlot == availability.TimeSlot);
 
-            if (existingAvailability.Any())
+            if (conflictingSlot != null)
             {
                 _logger.LogWarning($"Availability already exists for doctor {availability.DoctorId} at {availability.Date} {availability.TimeSlot}");
                 return BadRequest("Availability slot already exists");

@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BsTrashFill, BsPencilFill } from "react-icons/bs"
 
 // Mock user ID for testing - replace this with actual auth later
-const MOCK_USER_ID = 'test-patient-123';
+const MOCK_USER_ID = 'patient-123';
 
 export const PatientSchedule = () => {
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();

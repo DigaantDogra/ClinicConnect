@@ -4,7 +4,7 @@ import useBookingViewModel from './BookingViewModel';
 import { BackgroundCanvas } from "../../BackgroundCanvas"
 
 // Mock user ID for testing - replace this with actual auth later
-const MOCK_USER_ID = 'test-patient-123';
+const MOCK_USER_ID = 'patient-123';
 
 export const PatientBooking = () => {
   const location = useLocation();

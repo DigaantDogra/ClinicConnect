@@ -81,20 +81,25 @@ public class PatientApiController : ControllerBase
             }
 
             // Check if the doctor is available at the requested time
-            var availability = await _firebaseService.QueryCollection<Availability>("availabilities", 
-                new { DoctorId = appointment.DoctorId, Date = appointment.Date, TimeSlot = appointment.TimeSlot });
+            var availability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", appointment.DoctorId);
+            var availableSlot = availability.FirstOrDefault(a => 
+                a.Date == appointment.Date && 
+                a.TimeSlot == appointment.TimeSlot && 
+                a.IsAvailable);
 
-            if (!availability.Any() || !availability.First().IsAvailable)
+            if (availableSlot == null)
             {
                 _logger.LogWarning($"Doctor {appointment.DoctorId} is not available at the requested time");
                 return BadRequest("Doctor is not available at the requested time");
             }
 
             // Check for conflicting appointments
-            var existingAppointments = await _firebaseService.QueryCollection<Appointment>("appointments",
-                new { DoctorId = appointment.DoctorId, Date = appointment.Date, TimeSlot = appointment.TimeSlot });
+            var existingAppointments = await _firebaseService.QueryCollection<Appointment>("appointments", "DoctorId", appointment.DoctorId);
+            var conflictingAppointment = existingAppointments.FirstOrDefault(a => 
+                a.Date == appointment.Date && 
+                a.TimeSlot == appointment.TimeSlot);
 
-            if (existingAppointments.Any())
+            if (conflictingAppointment != null)
             {
                 _logger.LogWarning($"Time slot conflict for doctor {appointment.DoctorId}");
                 return BadRequest("Time slot is already booked");
