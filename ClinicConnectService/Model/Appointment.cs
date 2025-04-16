@@ -6,13 +6,13 @@ namespace ClinicConnectService.Model;
 public class Appointment
 {
     [FirestoreProperty]
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; }
     
     [FirestoreProperty]
-    public string PatientEmail { get; set; } = string.Empty;
+    public string PatientId { get; set; } = string.Empty;
     
     [FirestoreProperty]
-    public string DoctorEmail { get; set; } = string.Empty;
+    public string DoctorId { get; set; } = string.Empty;
     
     [FirestoreProperty]
     public string Date { get; set; } = string.Empty;

@@ -9,7 +9,7 @@ public class Availability
     public string Id { get; set; } = Guid.NewGuid().ToString();
     
     [FirestoreProperty]
-    public string DoctorEmail { get; set; } = string.Empty;
+    public string DoctorId { get; set; } = string.Empty;
     
     [FirestoreProperty]
     public string Date { get; set; } = string.Empty;
