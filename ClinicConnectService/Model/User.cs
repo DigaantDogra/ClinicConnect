@@ -15,7 +15,7 @@ public class User
     public string Email { get; set; } = string.Empty;
     
     [FirestoreProperty]
-    public UserType Type { get; set; }
+    public string Type { get; set; }
     
     [FirestoreProperty]
     public List<string> AppointmentIds { get; set; } = new List<string>();
@@ -23,6 +23,4 @@ public class User
     [FirestoreProperty]
     public List<Notification>? Notifications { get; set; }
     
-    [FirestoreProperty]
-    public string UserType { get; set; } = string.Empty; // Discriminator field
 }
