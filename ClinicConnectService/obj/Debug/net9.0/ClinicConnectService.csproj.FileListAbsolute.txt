@@ -257,3 +257,6 @@
 /Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/obj/Debug/net9.0/ClinicCo.0EF47C4B.Up2Date
 /Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/obj/Debug/net9.0/ClinicConnectService.genruntimeconfig.cache
 /Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/obj/Debug/net9.0/ref/ClinicConnectService.dll
+/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/bin/Debug/net9.0/Swashbuckle.AspNetCore.Swagger.dll
+/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerGen.dll
+/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll
