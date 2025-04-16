@@ -44,11 +44,6 @@ if (!File.Exists(credentialsPath))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Register services
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<ICarePlanService, CarePlanService>();
-builder.Services.AddSingleton<IFirebaseService, FirebaseService>();
-
 // Configure CORS
 builder.Services.AddCors(options =>
 {
@@ -60,7 +55,27 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Register services
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<ICarePlanService, CarePlanService>();
+builder.Services.AddSingleton<IFirebaseService, FirebaseService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MyAllowSpecificOrigins",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build();
+
+// Make sure to use the policy
+app.UseCors("MyAllowSpecificOrigins");
+
 
 // Initialize Firebase
 var firebaseService = app.Services.GetRequiredService<IFirebaseService>();
