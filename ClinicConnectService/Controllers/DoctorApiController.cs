@@ -24,18 +24,18 @@ public class DoctorApiController : ControllerBase
         _firebaseService = firebaseService;
     }
 
-    [HttpGet("name/{doctorEmail}")]
-    public async Task<ActionResult<string>> GetDoctorName(string doctorEmail)
+    [HttpGet("{doctorId}")]
+    public async Task<ActionResult<string>> GetDoctorName(string doctorId)
     {
         try
         {
-            _logger.LogInformation($"Fetching doctor name for email: {doctorEmail}");
+            _logger.LogInformation($"Fetching doctor name for ID: {doctorId}");
             
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorEmail);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorId);
             if (doctor == null)
             {
-                _logger.LogWarning($"Doctor not found: {doctorEmail}");
-                return NotFound($"Doctor with email {doctorEmail} not found");
+                _logger.LogWarning($"Doctor not found: {doctorId}");
+                return NotFound($"Doctor with ID {doctorId} not found");
             }
 
             _logger.LogInformation($"Found doctor name: {doctor.UserName}");
@@ -43,35 +43,35 @@ public class DoctorApiController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving doctor name for email: {doctorEmail}");
+            _logger.LogError(ex, $"Error retrieving doctor name for ID: {doctorId}");
             return StatusCode(500, "An error occurred while retrieving doctor name");
         }
     }
 
-    [HttpGet("appointments/{doctorEmail}")]
-    public async Task<ActionResult<IEnumerable<Appointment>>> GetDoctorAppointments(string doctorEmail)
+    [HttpGet("appointments/{doctorId}")]
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetDoctorAppointments(string doctorId)
     {
         try
         {
-            _logger.LogInformation($"Fetching appointments for doctor: {doctorEmail}");
+            _logger.LogInformation($"Fetching appointments for doctor: {doctorId}");
             
             // Get doctor to verify existence
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorEmail);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorId);
             if (doctor == null)
             {
-                _logger.LogWarning($"Doctor not found: {doctorEmail}");
-                return NotFound($"Doctor with email {doctorEmail} not found");
+                _logger.LogWarning($"Doctor not found: {doctorId}");
+                return NotFound($"Doctor with ID {doctorId} not found");
             }
 
             // Get all appointments for this doctor
-            var appointments = await _firebaseService.QueryCollection<Appointment>("appointments", "DoctorEmail", doctorEmail);
+            var appointments = await _firebaseService.QueryCollection<Appointment>("appointments", "DoctorId", doctorId);
             
-            _logger.LogInformation($"Found {appointments.Count} appointments for doctor: {doctorEmail}");
+            _logger.LogInformation($"Found {appointments.Count} appointments for doctor: {doctorId}");
             return Ok(appointments);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving appointments for doctor: {doctorEmail}");
+            _logger.LogError(ex, $"Error retrieving appointments for doctor: {doctorId}");
             return StatusCode(500, "An error occurred while retrieving appointments");
         }
     }
@@ -90,22 +90,22 @@ public class DoctorApiController : ControllerBase
             }
 
             // Verify doctor exists
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", availability.DoctorEmail);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", availability.DoctorId);
             if (doctor == null)
             {
-                _logger.LogWarning($"Doctor not found: {availability.DoctorEmail}");
-                return BadRequest($"Doctor with email {availability.DoctorEmail} not found");
+                _logger.LogWarning($"Doctor not found: {availability.DoctorId}");
+                return BadRequest($"Doctor with ID {availability.DoctorId} not found");
             }
 
             // Check for existing availability at the same time
-            var existingAvailability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorEmail", availability.DoctorEmail);
+            var existingAvailability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", availability.DoctorId);
             var conflictingSlot = existingAvailability.FirstOrDefault(a => 
                 a.Date == availability.Date && 
                 a.TimeSlot == availability.TimeSlot);
 
             if (conflictingSlot != null)
             {
-                _logger.LogWarning($"Availability already exists for doctor {availability.DoctorEmail} at {availability.Date} {availability.TimeSlot}");
+                _logger.LogWarning($"Availability already exists for doctor {availability.DoctorId} at {availability.Date} {availability.TimeSlot}");
                 return BadRequest("Availability slot already exists");
             }
 
@@ -121,7 +121,7 @@ public class DoctorApiController : ControllerBase
             await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
 
             _logger.LogInformation($"Availability added successfully. ID: {availability.Id}");
-            return CreatedAtAction(nameof(GetAvailabilities), new { doctorEmail = availability.DoctorEmail }, availability);
+            return CreatedAtAction(nameof(GetAvailabilities), new { doctorId = availability.DoctorId }, availability);
         }
         catch (Exception ex)
         {
@@ -130,30 +130,30 @@ public class DoctorApiController : ControllerBase
         }
     }
 
-    [HttpGet("availability/{doctorEmail}")]
-    public async Task<ActionResult<IEnumerable<Availability>>> GetAvailabilities(string doctorEmail)
+    [HttpGet("availability/{doctorId}")]
+    public async Task<ActionResult<IEnumerable<Availability>>> GetAvailabilities(string doctorId)
     {
         try
         {
-            _logger.LogInformation($"Fetching availabilities for doctor: {doctorEmail}");
+            _logger.LogInformation($"Fetching availabilities for doctor: {doctorId}");
 
             // Get doctor to verify existence
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorEmail);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorId);
             if (doctor == null)
             {
-                _logger.LogWarning($"Doctor not found: {doctorEmail}");
-                return NotFound($"Doctor with email {doctorEmail} not found");
+                _logger.LogWarning($"Doctor not found: {doctorId}");
+                return NotFound($"Doctor with ID {doctorId} not found");
             }
 
             // Get all availabilities for this doctor
-            var availabilities = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorEmail", doctorEmail);
+            var availabilities = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", doctorId);
             
-            _logger.LogInformation($"Found {availabilities.Count} availabilities for doctor: {doctorEmail}");
+            _logger.LogInformation($"Found {availabilities.Count} availabilities for doctor: {doctorId}");
             return Ok(availabilities);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving availabilities for doctor: {doctorEmail}");
+            _logger.LogError(ex, $"Error retrieving availabilities for doctor: {doctorId}");
             return StatusCode(500, "An error occurred while retrieving availabilities");
         }
     }
@@ -174,7 +174,7 @@ public class DoctorApiController : ControllerBase
             }
 
             // Get the doctor
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", availability.DoctorEmail);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", availability.DoctorId);
             if (doctor != null)
             {
                 doctor.AvailabilityIds.Remove(availabilityId);
@@ -193,4 +193,15 @@ public class DoctorApiController : ControllerBase
             return StatusCode(500, "An error occurred while deleting availability");
         }
     }
-} 
+}
+
+
+/*
+// Temporarily commented out for testing care plan functionality
+using Microsoft.AspNetCore.Mvc;
+
+namespace ClinicConnectService.Controllers
+{
+    // ... existing code ...
+}
+*/ 
