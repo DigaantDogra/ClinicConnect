@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, TextField, Typography, Paper, CircularProgress } from '@mui/material';
+import { useApiService } from '../../Services/ApiService';
 
 const GeneratePlanPage = () => {
     const navigate = useNavigate();
