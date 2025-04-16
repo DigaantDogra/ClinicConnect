@@ -125,4 +125,14 @@ public class DoctorApiController : ControllerBase
 public class DeleteAvailabilityRequest
 {
     public string Id { get; set; }
-} 
+}
+
+/*
+// Temporarily commented out for testing care plan functionality
+using Microsoft.AspNetCore.Mvc;
+
+namespace ClinicConnectService.Controllers
+{
+    // ... existing code ...
+}
+*/ 

@@ -8,6 +8,8 @@ import { Search } from './Pages/Patient/Search/Search'
 import { DoctorHome } from './Pages/Doctor/Home/Home'
 import { DoctorAppointment } from './Pages/Doctor/Appointment/Appointment'
 import { DoctorAvailability } from './Pages/Doctor/Availability/Availability'
+import GeneratePlanPage from './Pages/Doctor/GeneratePlanPage'
+import DraftPlanPage from './Pages/Doctor/DraftPlanPage'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App({ user = "Patient" }) {
@@ -35,6 +37,8 @@ function App({ user = "Patient" }) {
               <Route path={`/${user}/Home`} element={<DoctorHome />} />
               <Route path={`/${user}/Appointment`} element={<DoctorAppointment />} />
               <Route path={`/${user}/Availability`} element={<DoctorAvailability />} />
+              <Route path={`/${user}/GeneratePlan`} element={<GeneratePlanPage />} />
+              <Route path={`/${user}/DraftPlan`} element={<DraftPlanPage />} />
             </Routes>
           </main>
         </div>
