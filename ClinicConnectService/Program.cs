@@ -1,13 +1,11 @@
 using ClinicConnectService.Services;
-<<<<<<< HEAD
+using ClinicConnectService.DataService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-=======
 using ClinicConnectService.DataService;
 using ClinicConnectService.Service;
 using System;
->>>>>>> main
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,10 +47,7 @@ if (!File.Exists(credentialsPath))
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-<<<<<<< HEAD
-builder.Services.AddSwaggerGen();
-=======
->>>>>>> main
+
 
 // Add CORS services
 builder.Services.AddCors(options =>
@@ -85,25 +80,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-<<<<<<< HEAD
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
 
 // Use CORS middleware
 app.UseCors("AllowReactApp");
-=======
-// Make sure to use the policy
 app.UseCors("MyAllowSpecificOrigins");
 
 
 // Initialize Firebase
 var firebaseService = app.Services.GetRequiredService<IFirebaseService>();
 firebaseService.InitializeFirebase();
->>>>>>> main
 
 app.UseHttpsRedirection();
 app.UseAuthorization();

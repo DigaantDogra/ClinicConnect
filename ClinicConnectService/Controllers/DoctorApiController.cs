@@ -165,7 +165,7 @@ public class DoctorApiController : ControllerBase
         {
             _logger.LogInformation($"Received availability deletion request for ID: {availabilityId}");
 
-            // Get the availability
+            // Get the availability to find the doctor ID
             var availability = await _firebaseService.GetDocument<Availability>("availabilities", availabilityId);
             if (availability == null)
             {
@@ -173,19 +173,23 @@ public class DoctorApiController : ControllerBase
                 return NotFound($"Availability with ID {availabilityId} not found");
             }
 
-            // Get the doctor
+            // Get the doctor to update their availability list
             var doctor = await _firebaseService.GetDocument<Doctor>("doctors", availability.DoctorId);
-            if (doctor != null)
+            if (doctor == null)
             {
-                doctor.AvailabilityIds.Remove(availabilityId);
-                await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+                _logger.LogWarning($"Doctor not found: {availability.DoctorId}");
+                return NotFound($"Doctor with ID {availability.DoctorId} not found");
             }
+
+            // Remove the availability ID from the doctor's list
+            doctor.AvailabilityIds.Remove(availabilityId);
+            await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
 
             // Delete the availability
             await _firebaseService.DeleteDocument("availabilities", availabilityId);
 
-            _logger.LogInformation($"Availability deleted successfully. ID: {availabilityId}");
-            return NoContent();
+            _logger.LogInformation($"Availability with ID {availabilityId} deleted successfully");
+            return Ok(new { message = "Availability deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -194,17 +198,3 @@ public class DoctorApiController : ControllerBase
         }
     }
 }
-<<<<<<< HEAD
-=======
-
-
-/*
-// Temporarily commented out for testing care plan functionality
-using Microsoft.AspNetCore.Mvc;
-
-namespace ClinicConnectService.Controllers
-{
-    // ... existing code ...
-}
-*/ 
->>>>>>> main
