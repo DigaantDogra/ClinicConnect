@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClinicConnectService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fdee9e3aceaad8aee2fa33d91c167b34e01cde65")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+64f8cf177e5b8a8040d0be68c579062d240e43c3")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClinicConnectService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClinicConnectService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
