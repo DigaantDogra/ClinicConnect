@@ -5,7 +5,7 @@ export const HomeSection = () => {
     return <BackgroundCanvas section={
         <div className="flex justify-center items-center mx-auto">
 
-            <Link to="/Schedule" className="home-btn">
+            <Link to="/Search" className="home-btn">
                 <h1 className="home-h1">Book Appointment</h1>
             </Link>
 
