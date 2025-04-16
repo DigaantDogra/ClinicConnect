@@ -1,13 +1,25 @@
-import { useState } from "react"
-import { Link, useLocation } from "react-router-dom";
+import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent } from "react-icons/bs"
+import { signOut } from 'firebase/auth';
+import { auth } from '../Service/firebase';
 
 const defaultPage = "Home"
 
-export const Navbar = ({ user = "Patient" }) => {
-    let [activeIcon, setActiveIcon] = useState(defaultPage);
+export const Navbar = ({ user, onLogout }) => {
+    let [activeIcon, setActiveIcon] = React.useState(defaultPage);
     const location = useLocation();
     const isDoctor = location.pathname.includes("/Doctor");
+    const navigate = useNavigate();
+  
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        navigate('/');
+      } catch (error) {
+        console.error('Error signing out:', error);
+      }
+    };
   
     return (
       <>
@@ -56,6 +68,14 @@ export const Navbar = ({ user = "Patient" }) => {
                 />
               </>
             )}
+          </div>
+          <div className="p-4">
+            <button
+              onClick={handleLogout}
+              className="w-full p-2 bg-red-600 hover:bg-red-700 rounded"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </>
