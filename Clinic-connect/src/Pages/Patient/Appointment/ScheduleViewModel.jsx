@@ -6,11 +6,11 @@ const useScheduleViewModel = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async (patientId) => {
     setIsLoading(true);
     try {
       console.log('Fetching appointments...');
-      const data = await ApiService.getAppointments();
+      const data = await ApiService.getAppointments(patientId);
       console.log('Raw API Response:', data);
       
       if (!Array.isArray(data)) {
@@ -23,9 +23,10 @@ const useScheduleViewModel = () => {
         return {
           id: appt.id,
           date: appt.date || 'N/A',
-          time: appt.time || 'N/A',
-          // doctor: appt.DoctorName || 'Dr. Jacob Jones',
-          reason: appt.reason || 'N/A'
+          timeSlot: appt.timeSlot || 'N/A',
+          doctorId: appt.doctorId || 'N/A',
+          reason: appt.reason || 'N/A',
+          isConfirmed: appt.isConfirmed
         };
       });
       
