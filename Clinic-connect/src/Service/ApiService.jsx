@@ -1,119 +1,204 @@
 class ApiService {
-    static baseUrl = 'http://localhost:5276/patient';
-  
-    static async getHeaders() {
-      const token = localStorage.getItem('authToken');
-      return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-    }
-  
-    static async createAppointment(appointment) {
-      try {
-        console.log('Attempting to create appointment at:', `${this.baseUrl}/appointment/create`);
-        console.log('Request headers:', await this.getHeaders());
-        console.log('Request body:', JSON.stringify(appointment));
+  static baseUrl = 'http://localhost:5276';
+  static patientBaseUrl = `${this.baseUrl}/patient`;
+  static doctorBaseUrl = `${this.baseUrl}/doctor`;
 
-        const response = await fetch(`${this.baseUrl}/appointment/create`, {
-          method: 'POST',
-          headers: await this.getHeaders(),
-          body: JSON.stringify(appointment),
-          mode: 'cors' // Explicitly set CORS mode
-        });
+  static async getHeaders() {
+    const token = localStorage.getItem('authToken');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  }
 
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(`Server responded with status ${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Appointment created successfully:', result);
-        return result;
-      } catch (error) {
-        console.error('Detailed error in createAppointment:', error);
-        if (error.message.includes('Failed to fetch')) {
-          throw new Error('Cannot connect to the server. Please ensure the backend is running at http://localhost:5276');
-        }
-        throw error;
+  // Get user names by ID
+  static async getPatientName(patientId) {
+    try {
+      console.log('Fetching patient name for ID:', patientId);
+      const response = await fetch(`${this.patientBaseUrl}/${patientId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch patient name: ${errorText}`);
       }
-    }
 
-    static async getAppointments() {
-      try {
-        console.log('Attempting to fetch appointments from:', `${this.baseUrl}/appointment/get`);
-        const response = await fetch(`${this.baseUrl}/appointment/get`, {
-          method: 'GET',
-          headers: await this.getHeaders(),
-          mode: 'cors' // Explicitly set CORS mode
-        });
-
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(`Server responded with status ${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Appointments fetched successfully:', result);
-        return result;
-      } catch (error) {
-        console.error('Detailed error in getAppointments:', error);
-        if (error.message.includes('Failed to fetch')) {
-          throw new Error('Cannot connect to the server. Please ensure the backend is running at http://localhost:5276');
-        }
-        throw error;
-      }
-    }
-
-    static async deleteAppointment(appointmentId) {
-      try {
-        console.log('Attempting to delete appointment with ID:', appointmentId);
-        const response = await fetch(`${this.baseUrl}/appointment/delete`, {
-          method: 'DELETE',
-          headers: await this.getHeaders(),
-          body: JSON.stringify({ id: appointmentId })
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(`Failed to delete appointment: ${errorText}`);
-        }
-        
-        return true;
-      } catch (error) {
-        console.error('Error deleting appointment:', error);
-        throw error;
-      }
-    }
-
-    static async editAppointment(appointmentData) {
-      try {
-        console.log('Attempting to edit appointment:', appointmentData);
-        const response = await fetch(`${this.baseUrl}/appointment/edit`, {
-          method: 'PUT',
-          headers: await this.getHeaders(),
-          body: JSON.stringify(appointmentData)
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error response:', errorText);
-          throw new Error(`Failed to edit appointment: ${errorText}`);
-        }
-        
-        return true;
-      } catch (error) {
-        console.error('Error editing appointment:', error);
-        throw error;
-      }
+      const name = await response.text();
+      console.log('Patient name:', name);
+      return name;
+    } catch (error) {
+      console.error('Error fetching patient name:', error);
+      throw error;
     }
   }
-  
-  export default ApiService;
+
+  static async getDoctorName(doctorId) {
+    try {
+      console.log('Fetching doctor name for ID:', doctorId);
+      const response = await fetch(`${this.doctorBaseUrl}/${doctorId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch doctor name: ${errorText}`);
+      }
+
+      const name = await response.text();
+      console.log('Doctor name:', name);
+      return name;
+    } catch (error) {
+      console.error('Error fetching doctor name:', error);
+      throw error;
+    }
+  }
+
+  // Patient Appointment Operations
+  static async createAppointment(appointment) {
+    try {
+      console.log('Creating appointment:', appointment);
+      const response = await fetch(`${this.patientBaseUrl}/appointments`, {
+        method: 'POST',
+        headers: await this.getHeaders(),
+        body: JSON.stringify(appointment)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create appointment: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      throw error;
+    }
+  }
+
+  static async getAppointments(patientId) {
+    try {
+      console.log('Fetching appointments for patient:', patientId);
+      const response = await fetch(`${this.patientBaseUrl}/appointments/${patientId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch appointments: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAppointment(appointmentId) {
+    try {
+      console.log('Deleting appointment:', appointmentId);
+      const response = await fetch(`${this.patientBaseUrl}/appointments/${appointmentId}`, {
+        method: 'DELETE',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete appointment: ${errorText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      throw error;
+    }
+  }
+
+  // Doctor Operations
+  static async getDoctorAppointments(doctorId) {
+    try {
+      console.log('Fetching appointments for doctor:', doctorId);
+      const response = await fetch(`${this.doctorBaseUrl}/appointments/${doctorId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch doctor appointments: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching doctor appointments:', error);
+      throw error;
+    }
+  }
+
+  static async addAvailability(availability) {
+    try {
+      console.log('Adding availability:', availability);
+      const response = await fetch(`${this.doctorBaseUrl}/availability`, {
+        method: 'POST',
+        headers: await this.getHeaders(),
+        body: JSON.stringify(availability)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to add availability: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding availability:', error);
+      throw error;
+    }
+  }
+
+  static async getDoctorAvailabilities(doctorId) {
+    try {
+      console.log('Fetching availabilities for doctor:', doctorId);
+      const response = await fetch(`${this.doctorBaseUrl}/availability/${doctorId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch doctor availabilities: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching doctor availabilities:', error);
+      throw error;
+    }
+  }
+
+  static async deleteAvailability(availabilityId) {
+    try {
+      console.log('Deleting availability:', availabilityId);
+      const response = await fetch(`${this.doctorBaseUrl}/availability/${availabilityId}`, {
+        method: 'DELETE',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete availability: ${errorText}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting availability:', error);
+      throw error;
+    }
+  }
+}
+
+export default ApiService;

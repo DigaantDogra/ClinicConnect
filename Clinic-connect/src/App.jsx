@@ -20,11 +20,11 @@ function App({ user = "Patient" }) {
           <Navbar user={user} />
           <main className="flex-1 ml-20 p-8">
             <Routes>
-              <Route path={`/${user}`} element={<PatientHome />} />
-              <Route path={`/${user}/Home`} element={<PatientHome />} />
-              <Route path={`/${user}/Schedule`} element={<PatientSchedule />} />
-              <Route path={`/${user}/Search`} element={<Search />} />
-              <Route path={`/${user}/Booking`} element={<PatientBooking />} />
+              <Route path={`/${user}`} element={<PatientHome userName={user} />} />
+              <Route path={`/${user}/Home`} element={<PatientHome userName={user} />} />
+              <Route path={`/${user}/Schedule`} element={<PatientSchedule userName={user} />} />
+              <Route path={`/${user}/Search`} element={<Search userName={user} />} />
+              <Route path={`/${user}/Booking`} element={<PatientBooking userName={user} />} />
             </Routes>
           </main>
         </>

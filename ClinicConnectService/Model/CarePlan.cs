@@ -1,31 +1,57 @@
 // CarePlan.cs model
+using Google.Cloud.Firestore;
+
 namespace ClinicConnectService.Model
 {
+    [FirestoreData]
     public class CarePlan
     {
-        public int Id { get; set; }
-        public int DoctorId { get; set; }
-        public int PatientId { get; set; }
+        [FirestoreProperty]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        
+        [FirestoreProperty]
+        public string DoctorId { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public string PatientId { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
-        public required string OriginalPrompt { get; set; }
-        public required string GeneratedPlan { get; set; }
+        
+        [FirestoreProperty]
+        public string OriginalPrompt { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public string GeneratedPlan { get; set; } = string.Empty;
         
         // Navigation properties
         public Doctor? Doctor { get; set; }
         public Patient? Patient { get; set; }
     }
 
+    [FirestoreData]
     public class CarePlanRequest
     {
-        public int DoctorId { get; set; }
-        public int PatientId { get; set; }
-        public required string Prompt { get; set; }
+        [FirestoreProperty]
+        public string DoctorId { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public string PatientId { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public string Prompt { get; set; } = string.Empty;
     }
 
+    [FirestoreData]
     public class CarePlanResponse
     {
-        public int CarePlanId { get; set; }
-        public string? PlanText { get; set; }
-        public DateTime GeneratedDate { get; set; }
+        [FirestoreProperty]
+        public string CarePlanId { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public string PlanText { get; set; } = string.Empty;
+        
+        [FirestoreProperty]
+        public DateTime GeneratedDate { get; set; } = DateTime.UtcNow;
     }
 }
