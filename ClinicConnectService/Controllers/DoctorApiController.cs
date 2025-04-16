@@ -24,6 +24,30 @@ public class DoctorApiController : ControllerBase
         _firebaseService = firebaseService;
     }
 
+    [HttpGet("{doctorId}")]
+    public async Task<ActionResult<string>> GetDoctorName(string doctorId)
+    {
+        try
+        {
+            _logger.LogInformation($"Fetching doctor name for ID: {doctorId}");
+            
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorId);
+            if (doctor == null)
+            {
+                _logger.LogWarning($"Doctor not found: {doctorId}");
+                return NotFound($"Doctor with ID {doctorId} not found");
+            }
+
+            _logger.LogInformation($"Found doctor name: {doctor.UserName}");
+            return Ok(doctor.UserName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error retrieving doctor name for ID: {doctorId}");
+            return StatusCode(500, "An error occurred while retrieving doctor name");
+        }
+    }
+
     [HttpGet("appointments/{doctorId}")]
     public async Task<ActionResult<IEnumerable<Appointment>>> GetDoctorAppointments(string doctorId)
     {

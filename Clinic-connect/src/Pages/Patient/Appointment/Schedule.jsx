@@ -28,7 +28,7 @@ export const PatientSchedule = () => {
 
   const handleEditClick = (appointment) => {
     // Navigate to Booking page with appointment data
-    navigate('/Booking', { state: { appointment } });
+    navigate('/Patient/Booking', { state: { appointment } });
   };
 
   if (isLoading) {
@@ -40,68 +40,58 @@ export const PatientSchedule = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8">Your Appointments</h1>
-          
-          {appointments.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              No appointments scheduled
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {appointments.map((appointment) => (
-                    <tr key={appointment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.timeSlot}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          appointment.isConfirmed 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {appointment.isConfirmed ? 'Confirmed' : 'Pending'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEditClick(appointment)}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            <BsPencilFill className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(appointment.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <BsTrashFill className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+    <BackgroundCanvas section={
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="flex justify-end">
+          <Link to={"/Patient/Search"}>
+            <h1 className="bg-blue-400 p-4 rounded-2xl text-white mb-3 hover:-translate-y-0.5 transition-all">
+              Request Appointment
+            </h1>
+          </Link>
+        </div>
+        
+        <div className="overflow-x-auto rounded-lg shadow">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {appointments.map((appointment, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.timeSlot}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctorName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(appointment)}
+                        className="text-blue-500 text-xl/snug hover:text-blue-700"
+                        title="Edit Appointment"
+                      >
+                        <BsPencilFill />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(appointment.id)}
+                        className="text-red-500 text-xl/snug hover:text-red-700"
+                        title="Delete Appointment"
+                      >
+                        <BsTrashFill />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
+    }/>
   );
 };

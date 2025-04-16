@@ -11,6 +11,51 @@ class ApiService {
     };
   }
 
+  // Get user names by ID
+  static async getPatientName(patientId) {
+    try {
+      console.log('Fetching patient name for ID:', patientId);
+      const response = await fetch(`${this.patientBaseUrl}/${patientId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch patient name: ${errorText}`);
+      }
+
+      const name = await response.text();
+      console.log('Patient name:', name);
+      return name;
+    } catch (error) {
+      console.error('Error fetching patient name:', error);
+      throw error;
+    }
+  }
+
+  static async getDoctorName(doctorId) {
+    try {
+      console.log('Fetching doctor name for ID:', doctorId);
+      const response = await fetch(`${this.doctorBaseUrl}/${doctorId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch doctor name: ${errorText}`);
+      }
+
+      const name = await response.text();
+      console.log('Doctor name:', name);
+      return name;
+    } catch (error) {
+      console.error('Error fetching doctor name:', error);
+      throw error;
+    }
+  }
+
   // Patient Appointment Operations
   static async createAppointment(appointment) {
     try {

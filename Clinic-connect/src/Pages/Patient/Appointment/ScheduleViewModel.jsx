@@ -18,20 +18,37 @@ const useScheduleViewModel = () => {
         throw new Error('Invalid response format from server');
       }
 
-      const formattedAppointments = data.map(appt => {
-        console.log('Processing appointment:', appt);
-        return {
-          id: appt.id,
-          date: appt.date || 'N/A',
-          timeSlot: appt.timeSlot || 'N/A',
-          doctorId: appt.doctorId || 'N/A',
-          reason: appt.reason || 'N/A',
-          isConfirmed: appt.isConfirmed
-        };
-      });
+      // Create an array to store appointments with doctor names
+      const appointmentsWithDoctorNames = [];
       
-      console.log('Formatted Appointments:', formattedAppointments);
-      setAppointments(formattedAppointments);
+      // Process each appointment sequentially
+      for (const appt of data) {
+        try {
+          console.log('Fetching doctor name for appointment:', appt.id);
+          const doctorName = await ApiService.getDoctorName(appt.doctorId);
+          console.log('Doctor name fetched:', doctorName);
+          
+          appointmentsWithDoctorNames.push({
+            id: appt.id,
+            date: appt.date || 'N/A',
+            timeSlot: appt.timeSlot || 'N/A',
+            doctorId: appt.doctorId || 'N/A',
+            doctorName: doctorName || 'Unknown Doctor',
+            reason: appt.reason || 'N/A',
+            isConfirmed: appt.isConfirmed
+          });
+        } catch (err) {
+          console.error('Error fetching doctor name for appointment:', appt.id, err);
+          // Add appointment with unknown doctor name
+          appointmentsWithDoctorNames.push({
+            ...appt,
+            doctorName: 'Unknown Doctor'
+          });
+        }
+      }
+      
+      console.log('Formatted Appointments with Doctor Names:', appointmentsWithDoctorNames);
+      setAppointments(appointmentsWithDoctorNames);
       setError(null);
     } catch (err) {
       console.error('Error in fetchAppointments:', err);
