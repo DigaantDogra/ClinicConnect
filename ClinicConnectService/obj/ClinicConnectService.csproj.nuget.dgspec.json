@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj": {}
+    "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj": {}
   },
   "projects": {
-    "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj": {
+    "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
+        "projectUniqueName": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
         "projectName": "ClinicConnectService",
-        "projectPath": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
-        "packagesPath": "/Users/arjunanand/.nuget/packages/",
-        "outputPath": "/Users/arjunanand/Documents/SE_Project/ClinicConnect/ClinicConnectService/obj/",
+        "projectPath": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/ClinicConnectService.csproj",
+        "packagesPath": "/Users/digaantdogra/.nuget/packages/",
+        "outputPath": "/Users/digaantdogra/Library/CloudStorage/OneDrive-Personal/Projects/ClinicConnect/ClinicConnectService/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/arjunanand/.nuget/NuGet/NuGet.Config"
+          "/Users/digaantdogra/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -38,12 +38,24 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.200"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "FirebaseAdmin": {
+              "target": "Package",
+              "version": "[3.1.0, )"
+            },
+            "Google.Apis.Auth": {
+              "target": "Package",
+              "version": "[1.69.0, )"
+            },
+            "Google.Cloud.Firestore": {
+              "target": "Package",
+              "version": "[3.0.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.0, )"
@@ -78,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.202/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
