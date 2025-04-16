@@ -1,20 +1,53 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
+using System;
+
 namespace ClinicConnectService.DataService;
 
 public class FirebaseService
 {
-    public static FirebaseService InitializeFirebase()
+    private static FirestoreDb? _firestoreDb;
+
+    public static void InitializeFirebase()
     {
-        if (FirebaseService.DefaultInstance == null)
+        if (_firestoreDb == null)
         {
-            var app = FirebaseService.Create(new AppOptions()
+            try
             {
-                Credential = GoogleCredential.FromFile("path/to/firebase-adminsdk.json"),
-                DatabaseUrl = new Uri("https://your-database-name.firebaseio.com")
-            });
+                string credentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS") 
+                    ?? throw new InvalidOperationException("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set");
+                
+                string projectId = Environment.GetEnvironmentVariable("PROJECT_ID") 
+                    ?? throw new InvalidOperationException("PROJECT_ID environment variable is not set");
 
-            return app;
+                if (!File.Exists(credentialsPath))
+                {
+                    throw new FileNotFoundException($"Firebase credentials file not found at: {credentialsPath}");
+                }
+
+                var credential = GoogleCredential.FromFile(credentialsPath);
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = credential,
+                    ProjectId = projectId
+                });
+
+                _firestoreDb = FirestoreDb.Create(projectId);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to initialize Firebase: " + ex.Message, ex);
+            }
         }
+    }
 
-        return FirebaseService.DefaultInstance;
+    public static FirestoreDb GetFirestoreDb()
+    {
+        if (_firestoreDb == null)
+        {
+            throw new InvalidOperationException("Firestore database not initialized. Call InitializeFirebase first.");
+        }
+        return _firestoreDb;
     }
 }
