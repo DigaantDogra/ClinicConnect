@@ -62,11 +62,13 @@ const useScheduleViewModel = () => {
   const deleteAppointment = useCallback(async (appointmentId) => {
     setIsLoading(true);
     try {
+      console.log('Deleting appointment:', appointmentId);
       await ApiService.deleteAppointment(appointmentId);
       // Refresh the appointments list after successful deletion
       await fetchAppointments();
       setError(null);
     } catch (err) {
+      console.error('Error in deleteAppointment:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);

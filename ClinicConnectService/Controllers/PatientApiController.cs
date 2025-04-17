@@ -5,6 +5,7 @@ using ClinicConnectService.Model;
 using ClinicConnectService.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace ClinicConnectService.Controllers;
 
@@ -76,45 +77,23 @@ public class PatientApiController : ControllerBase
     }
 
     [HttpPost("appointments")]
-    public async Task<ActionResult<Appointment>> BookAppointment([FromBody] Appointment appointment)
+    public async Task<IActionResult> BookAppointment([FromBody] Appointment appointment)
     {
         try
         {
-            _logger.LogInformation($"Received appointment booking request: {appointment}");
-
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning($"Invalid appointment data: {ModelState}");
-                return BadRequest(ModelState);
-            }
-
-            // Verify patient exists
-            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
-            if (patient == null)
-            {
-                _logger.LogWarning($"Patient not found: {appointment.PatientId}");
-                return BadRequest($"Patient with ID {appointment.PatientId} not found");
-            }
-
-            // Verify doctor exists
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
-            if (doctor == null)
-            {
-                _logger.LogWarning($"Doctor not found: {appointment.DoctorId}");
-                return BadRequest($"Doctor with ID {appointment.DoctorId} not found");
-            }
-
-            // Check if the doctor is available at the requested time
+            _logger.LogInformation($"Booking appointment for patient {appointment.PatientId} with doctor {appointment.DoctorId}");
+            
+            // Check if the time slot is available
             var availability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", appointment.DoctorId);
             var availableSlot = availability.FirstOrDefault(a => 
-                a.Date == appointment.Date && 
-                a.TimeSlot == appointment.TimeSlot && 
+                a.Dates.Contains(appointment.Date) && 
+                a.TimeSlots.Contains(appointment.TimeSlot) && 
                 a.IsAvailable);
 
             if (availableSlot == null)
             {
-                _logger.LogWarning($"Doctor {appointment.DoctorId} is not available at the requested time");
-                return BadRequest("Doctor is not available at the requested time");
+                _logger.LogWarning($"Time slot not available: {appointment.Date} {appointment.TimeSlot}");
+                return BadRequest("Selected time slot is not available");
             }
 
             // Check for conflicting appointments
@@ -125,24 +104,32 @@ public class PatientApiController : ControllerBase
 
             if (conflictingAppointment != null)
             {
-                _logger.LogWarning($"Time slot conflict for doctor {appointment.DoctorId}");
+                _logger.LogWarning($"Conflicting appointment found: {conflictingAppointment.Id}");
                 return BadRequest("Time slot is already booked");
             }
 
-            // Generate a new ID for the appointment
+            // Create the appointment
             appointment.Id = Guid.NewGuid().ToString();
             appointment.IsConfirmed = false;
-
-            // Add the appointment
             await _firebaseService.AddDocument("appointments", appointment.Id, appointment);
 
             // Update patient's appointment list
-            patient.AppointmentIds.Add(appointment.Id);
-            await _firebaseService.UpdateDocument("patients", patient.Id, patient);
+            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
+            if (patient != null)
+            {
+                patient.AppointmentIds = patient.AppointmentIds ?? new List<string>();
+                patient.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("patients", patient.Id, patient);
+            }
 
             // Update doctor's appointment list
-            doctor.AppointmentIds.Add(appointment.Id);
-            await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
+            if (doctor != null)
+            {
+                doctor.AppointmentIds = doctor.AppointmentIds ?? new List<string>();
+                doctor.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+            }
 
             _logger.LogInformation($"Appointment booked successfully. ID: {appointment.Id}");
             return CreatedAtAction(nameof(GetPatientAppointments), new { patientId = appointment.PatientId }, appointment);
@@ -150,7 +137,7 @@ public class PatientApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error booking appointment");
-            return StatusCode(500, "An error occurred while booking the appointment");
+            return StatusCode(500, "Error booking appointment");
         }
     }
 
@@ -198,14 +185,3 @@ public class PatientApiController : ControllerBase
         }
     }
 }
-
-
-/*
-// Temporarily commented out for testing care plan functionality
-using Microsoft.AspNetCore.Mvc;
-
-namespace ClinicConnectService.Controllers
-{
-    // ... existing code ...
-}
-*/ 
