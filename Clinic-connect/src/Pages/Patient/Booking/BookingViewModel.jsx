@@ -23,16 +23,50 @@ export const useBookingViewModel = () => {
       // Transform the availability data into a more usable format
       const formattedAvailability = {};
       data.forEach(avail => {
-        console.log('Processing availability slot:', avail);
-        // Only include available slots
-        if (avail.isAvailable) {
-          const date = avail.date;
+        console.log('Processing availability:', avail);
+        
+        // Skip if availability is not available or missing required fields
+        if (!avail || !avail.isAvailable || !avail.dates || !avail.timeSlots) {
+          console.log('Skipping invalid availability:', avail);
+          return;
+        }
+
+        // Process each date in the Dates list
+        avail.dates.forEach(date => {
+          if (!date) {
+            console.log('Skipping invalid date');
+            return;
+          }
+
           if (!formattedAvailability[date]) {
             formattedAvailability[date] = [];
           }
-          formattedAvailability[date].push(avail.timeSlot);
-          console.log(`Added time slot ${avail.timeSlot} for date ${date}`);
-        }
+          
+          // Add all time slots for this date
+          avail.timeSlots.forEach(timeSlot => {
+            if (!timeSlot) {
+              console.log('Skipping invalid time slot');
+              return;
+            }
+
+            if (!formattedAvailability[date].includes(timeSlot)) {
+              formattedAvailability[date].push(timeSlot);
+              console.log(`Added time slot ${timeSlot} for date ${date}`);
+            }
+          });
+        });
+      });
+      
+      // Sort time slots for each date
+      Object.keys(formattedAvailability).forEach(date => {
+        formattedAvailability[date].sort((a, b) => {
+          // Convert time strings to minutes for comparison
+          const timeToMinutes = (time) => {
+            const [hours, minutes] = time.split(':').map(Number);
+            return hours * 60 + minutes;
+          };
+          return timeToMinutes(a) - timeToMinutes(b);
+        });
       });
       
       console.log('Final formatted availability:', JSON.stringify(formattedAvailability, null, 2));

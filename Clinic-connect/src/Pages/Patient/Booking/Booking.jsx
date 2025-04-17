@@ -5,7 +5,6 @@ import { BackgroundCanvas } from "../../BackgroundCanvas"
 
 // Mock user ID for testing - replace this with actual auth later
 const MOCK_USER_ID = 'patient-123';
-const MOCK_Doctor_ID = 'doctor-123';
 
 export const PatientBooking = () => {
   const location = useLocation();
@@ -114,11 +113,12 @@ export const PatientBooking = () => {
     console.log('Date selected:', date);
     console.log('Availability for selected date:', availability[date.isoDate]);
     
-    if (!date.currentMonth || date.isPast || !availability[date.isoDate]) {
+    if (!date || !date.currentMonth || date.isPast || !availability || !availability[date.isoDate]) {
       console.log('Date not selectable:', {
-        currentMonth: date.currentMonth,
-        isPast: date.isPast,
-        hasAvailability: !!availability[date.isoDate]
+        date: date,
+        currentMonth: date?.currentMonth,
+        isPast: date?.isPast,
+        hasAvailability: availability && !!availability[date?.isoDate]
       });
       return;
     }
@@ -207,9 +207,9 @@ export const PatientBooking = () => {
                 ))}
                 
                 {getCalendarGrid().map((date, index) => {
-                  const isAvailable = date.currentMonth && !date.isPast && availability[date.isoDate];
-                  const isSelected = selectedDate === date.isoDate;
-                  const availableSlots = isAvailable ? availability[date.isoDate].length : 0;
+                  const isAvailable = date?.currentMonth && !date?.isPast && availability && availability[date?.isoDate];
+                  const isSelected = selectedDate === date?.isoDate;
+                  const availableSlots = isAvailable && availability[date.isoDate] ? availability[date.isoDate].length : 0;
 
                   return (
                     <div
@@ -217,17 +217,17 @@ export const PatientBooking = () => {
                       onClick={() => handleDateSelect(date)}
                       className={`
                         p-4 text-center cursor-pointer
-                        ${date.currentMonth ? 'bg-white' : 'bg-gray-50'}
+                        ${date?.currentMonth ? 'bg-white' : 'bg-gray-50'}
                         ${isAvailable ? 'hover:bg-blue-50' : 'opacity-50 cursor-not-allowed'}
                         ${isSelected ? 'bg-blue-100 border-2 border-blue-500' : ''}
-                        ${date.isPast ? 'opacity-50 cursor-not-allowed' : ''}
+                        ${date?.isPast ? 'opacity-50 cursor-not-allowed' : ''}
                       `}
                     >
                       <span className={`
-                        ${date.currentMonth ? 'text-gray-900' : 'text-gray-400'}
+                        ${date?.currentMonth ? 'text-gray-900' : 'text-gray-400'}
                         ${isSelected ? 'font-bold' : ''}
                       `}>
-                        {date.date}
+                        {date?.date}
                       </span>
                       {isAvailable && (
                         <div className="mt-1 text-xs text-blue-500">
@@ -242,52 +242,30 @@ export const PatientBooking = () => {
           </div>
         )}
 
-        <div className="flex flex-col mt-7">
-          <div className="min-w-xl space-y-4">
-            <div className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <p className="font-medium">Verify</p>
-                <p className="text-sm text-gray-500 ml-4">- Certified</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="font-medium">5 Years Experience</p>
+        {/* Time Slot Selection */}
+        {selectedDate && availability && availability[selectedDate] && (
+          <div className="min-w-xl space-y-5">
+            <h4 className="font-medium">Available Time Slots</h4>
+            <div className="grid grid-cols-3 gap-2">
+              {availability[selectedDate].map((time, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedTime(time)}
+                  className={`
+                    p-2 text-sm border rounded
+                    ${selectedTime === time 
+                      ? 'bg-blue-500 text-white border-blue-500' 
+                      : 'hover:bg-gray-50'}
+                  `}
+                >
+                  {time}
+                </button>
+              ))}
             </div>
           </div>
+        )}
 
-          <div className="border-t my-6"></div>
-        
-          {/* Time Slot Selection */}
-          {selectedDate && availability[selectedDate] && (
-            <div className="min-w-xl space-y-5">
-              <h4 className="font-medium">Available Time Slots</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {availability[selectedDate].map((time, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedTime(time)}
-                    className={`
-                      p-2 text-sm border rounded
-                      ${selectedTime === time 
-                        ? 'bg-blue-500 text-white border-blue-500' 
-                        : 'hover:bg-gray-50'}
-                    `}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
+        {/* Reason and Book Now Section */}
         <div className="flex flex-col items-center">
           <div className="min-w-xl space-y-4 mt-5 mr-6">
             <h3 className="font-semibold">Reason</h3>
@@ -301,7 +279,7 @@ export const PatientBooking = () => {
             <button
               onClick={handleBookNow}
               className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-              disabled={isLoading}
+              disabled={isLoading || !selectedDate || !selectedTime || !reason}
             >
               {isLoading ? 'Processing...' : isEditMode ? 'Update Appointment' : 'Book Now'}
             </button>

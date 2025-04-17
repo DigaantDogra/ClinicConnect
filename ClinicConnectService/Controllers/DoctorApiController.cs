@@ -100,12 +100,12 @@ public class DoctorApiController : ControllerBase
             // Check for existing availability at the same time
             var existingAvailability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", availability.DoctorId);
             var conflictingSlot = existingAvailability.FirstOrDefault(a => 
-                a.Date == availability.Date && 
-                a.TimeSlot == availability.TimeSlot);
+                a.Dates.Contains(availability.Dates[0]) && 
+                a.TimeSlots.Contains(availability.TimeSlots[0]));
 
             if (conflictingSlot != null)
             {
-                _logger.LogWarning($"Availability already exists for doctor {availability.DoctorId} at {availability.Date} {availability.TimeSlot}");
+                _logger.LogWarning($"Availability already exists for doctor {availability.DoctorId} at {availability.Dates[0]} {availability.TimeSlots[0]}");
                 return BadRequest("Availability slot already exists");
             }
 
@@ -121,7 +121,7 @@ public class DoctorApiController : ControllerBase
             await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
 
             _logger.LogInformation($"Availability added successfully. ID: {availability.Id}");
-            return CreatedAtAction(nameof(GetAvailabilities), new { doctorId = availability.DoctorId }, availability);
+            return CreatedAtAction(nameof(GetDoctorAvailability), new { doctorId = availability.DoctorId }, availability);
         }
         catch (Exception ex)
         {
@@ -131,30 +131,18 @@ public class DoctorApiController : ControllerBase
     }
 
     [HttpGet("availability/{doctorId}")]
-    public async Task<ActionResult<IEnumerable<Availability>>> GetAvailabilities(string doctorId)
+    public async Task<IActionResult> GetDoctorAvailability(string doctorId)
     {
         try
         {
-            _logger.LogInformation($"Fetching availabilities for doctor: {doctorId}");
-
-            // Get doctor to verify existence
-            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", doctorId);
-            if (doctor == null)
-            {
-                _logger.LogWarning($"Doctor not found: {doctorId}");
-                return NotFound($"Doctor with ID {doctorId} not found");
-            }
-
-            // Get all availabilities for this doctor
+            _logger.LogInformation($"Fetching availability for doctor {doctorId}");
             var availabilities = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", doctorId);
-            
-            _logger.LogInformation($"Found {availabilities.Count} availabilities for doctor: {doctorId}");
             return Ok(availabilities);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving availabilities for doctor: {doctorId}");
-            return StatusCode(500, "An error occurred while retrieving availabilities");
+            _logger.LogError(ex, $"Error fetching availability for doctor {doctorId}");
+            return StatusCode(500, "Error fetching availability");
         }
     }
 

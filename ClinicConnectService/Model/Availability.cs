@@ -1,12 +1,14 @@
 using Google.Cloud.Firestore;
+using System.ComponentModel.DataAnnotations;
 
 namespace ClinicConnectService.Model;
 
 [FirestoreData]
 public class Availability
 {
+    [Required]
     [FirestoreProperty]
-    public string Id { get; set; }
+    public required string Id { get; set; }
     
     [FirestoreProperty]
     public string DoctorId { get; set; } = string.Empty;
