@@ -252,7 +252,7 @@ export const PatientBooking = () => {
 
         {/* Time Slot Selection */}
         {selectedDate && availability && availability[selectedDate] && (
-          <div className="min-w-xl space-y-5">
+          <div className="min-w-sm space-y-5">
             <h4 className="font-medium">Available Time Slots</h4>
             <div className="grid grid-cols-3 gap-2">
               {availability[selectedDate].map((time, index) => (
