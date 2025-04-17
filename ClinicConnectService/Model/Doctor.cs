@@ -1,10 +1,15 @@
+using Google.Cloud.Firestore;
+
 namespace ClinicConnectService.Model;
 
-public class Doctor: User
+[FirestoreData]
+public class Doctor:User
 {
-    Doctor(){
-        Type = UserType.Doctor;
+    [FirestoreProperty]
+    public List<string> AvailabilityIds { get; set; } = new List<string>();
+    
+    public Doctor()
+    {
+        Type = "Doctor";
     }
-
-    public List<Availability>? Availabilities { get; set; }
 }

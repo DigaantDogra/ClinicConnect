@@ -1,0 +1,20 @@
+# Ignore large files
+AI-Model/trained_models
+AI-Model/mistral-clinicconnect/
+*.safetensors
+*.bin
+*.msgpack
+
+# Dataset files
+*.csv
+*.txt
+
+# Ignore virtual environment
+ai-env/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Python cache
+__pycache__/
+*.pyc

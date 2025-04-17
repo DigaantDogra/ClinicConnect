@@ -54,7 +54,7 @@ export const Search = () => {
                         </div>
                         <p className="text-gray-600 text-sm mb-2">{doctor.specialty}</p>
                         <div className="flex justify-end items-center">
-                            <Link to="/Booking" className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                            <Link to="/Patient/Booking" className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
                                 Book
                             </Link>
                         </div>

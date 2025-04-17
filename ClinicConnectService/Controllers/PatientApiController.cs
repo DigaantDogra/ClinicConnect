@@ -1,153 +1,211 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using ClinicConnectService.Model;
+using ClinicConnectService.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace ClinicConnectService.Controllers;
-
-public static class DataStorage
-{
-    public static List<Appointment> Appointments = new List<Appointment>();
-    public static List<Availability> Availabilities = new List<Availability>();
-    // public static List<User> Users = new List<User>();
-}
 
 [ApiController]
 [Route("patient")]
 public class PatientApiController : ControllerBase
 {
     private readonly ILogger<PatientApiController> _logger;
+    private readonly IFirebaseService _firebaseService;
 
-    public PatientApiController(ILogger<PatientApiController> logger)
+    public PatientApiController(
+        ILogger<PatientApiController> logger,
+        IFirebaseService firebaseService)
     {
         _logger = logger;
+        _firebaseService = firebaseService;
     }
 
-    [HttpPost("appointment/create")]
-    public IActionResult CreateAppointment([FromBody] Appointment appointment)
+    [HttpGet("{patientId}")]
+    public async Task<ActionResult<string>> GetPatientName(string patientId)
     {
         try
         {
-            _logger.LogInformation("Received appointment creation request: {@Appointment}", appointment);
+            _logger.LogInformation($"Fetching patient name for ID: {patientId}");
             
-            // Set patient email from authentication context
-            appointment.Email = "example@example.com";
-            
-            // Add validation logic here
-            if (!ModelState.IsValid)
+            var patient = await _firebaseService.GetDocument<Patient>("patients", patientId);
+            if (patient == null)
             {
-                _logger.LogWarning("Invalid appointment data: {@ModelState}", ModelState);
-                return BadRequest(ModelState);
+                _logger.LogWarning($"Patient not found: {patientId}");
+                return NotFound($"Patient with ID {patientId} not found");
             }
 
-            DataStorage.Appointments.Add(appointment);
-            _logger.LogInformation("Appointment added successfully. Total appointments: {Count}", DataStorage.Appointments.Count);
-            
-            return CreatedAtAction(nameof(GetAppointments), appointment);
+            _logger.LogInformation($"Found patient name: {patient.UserName}");
+            return Ok(patient.UserName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating appointment");
-            return StatusCode(500, "An error occurred while creating the appointment");
+            _logger.LogError(ex, $"Error retrieving patient name for ID: {patientId}");
+            return StatusCode(500, "An error occurred while retrieving patient name");
         }
     }
 
-    [HttpGet("appointment/get")]
-    public IActionResult GetAppointments()
+    [HttpGet("appointments/{patientId}")]
+    public async Task<ActionResult<IEnumerable<Appointment>>> GetPatientAppointments(string patientId)
     {
         try
         {
-            var patientEmail = "example@example.com";
-            var appointments = DataStorage.Appointments.Where(a => a.Email == patientEmail).ToList();
+            _logger.LogInformation($"Fetching appointments for patient: {patientId}");
             
-            _logger.LogInformation("Retrieved {Count} appointments for email {Email}", 
-                appointments.Count, patientEmail);
-            _logger.LogInformation("Appointments: {@Appointments}", appointments);
+            // Get patient to verify existence
+            var patient = await _firebaseService.GetDocument<Patient>("patients", patientId);
+            if (patient == null)
+            {
+                _logger.LogWarning($"Patient not found: {patientId}");
+                return NotFound($"Patient with ID {patientId} not found");
+            }
+
+            // Get all appointments for this patient
+            var appointments = await _firebaseService.QueryCollection<Appointment>("appointments", "PatientId", patientId);
             
+            _logger.LogInformation($"Found {appointments.Count} appointments for patient: {patientId}");
             return Ok(appointments);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving appointments");
+            _logger.LogError(ex, $"Error retrieving appointments for patient: {patientId}");
             return StatusCode(500, "An error occurred while retrieving appointments");
         }
     }
 
-    [HttpDelete("appointment/delete")]
-    public IActionResult DeleteAppointment([FromBody] DeleteAppointmentRequest request)
+    [HttpPost("appointments")]
+    public async Task<ActionResult<Appointment>> BookAppointment([FromBody] Appointment appointment)
     {
         try
         {
-            _logger.LogInformation("Received appointment deletion request for ID: {Id}", request.Id);
-            
-            if (string.IsNullOrEmpty(request.Id))
+            _logger.LogInformation($"Received appointment booking request: {appointment}");
+
+            if (!ModelState.IsValid)
             {
-                _logger.LogWarning("No appointment ID provided in delete request");
-                return BadRequest("Appointment ID is required");
+                _logger.LogWarning($"Invalid appointment data: {ModelState}");
+                return BadRequest(ModelState);
             }
 
-            var appointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == request.Id);
-            if (appointment == null)
+            // Verify patient exists
+            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
+            if (patient == null)
             {
-                _logger.LogWarning("Appointment with ID {Id} not found", request.Id);
-                return NotFound($"Appointment with ID {request.Id} not found");
+                _logger.LogWarning($"Patient not found: {appointment.PatientId}");
+                return BadRequest($"Patient with ID {appointment.PatientId} not found");
             }
 
-            DataStorage.Appointments.Remove(appointment);
-            _logger.LogInformation("Appointment with ID {Id} deleted successfully", request.Id);
-            
-            return Ok(new { message = "Appointment deleted successfully" });
+            // Verify doctor exists
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
+            if (doctor == null)
+            {
+                _logger.LogWarning($"Doctor not found: {appointment.DoctorId}");
+                return BadRequest($"Doctor with ID {appointment.DoctorId} not found");
+            }
+
+            // Check if the doctor is available at the requested time
+            var availability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", appointment.DoctorId);
+            var availableSlot = availability.FirstOrDefault(a => 
+                a.Date == appointment.Date && 
+                a.TimeSlot == appointment.TimeSlot && 
+                a.IsAvailable);
+
+            if (availableSlot == null)
+            {
+                _logger.LogWarning($"Doctor {appointment.DoctorId} is not available at the requested time");
+                return BadRequest("Doctor is not available at the requested time");
+            }
+
+            // Check for conflicting appointments
+            var existingAppointments = await _firebaseService.QueryCollection<Appointment>("appointments", "DoctorId", appointment.DoctorId);
+            var conflictingAppointment = existingAppointments.FirstOrDefault(a => 
+                a.Date == appointment.Date && 
+                a.TimeSlot == appointment.TimeSlot);
+
+            if (conflictingAppointment != null)
+            {
+                _logger.LogWarning($"Time slot conflict for doctor {appointment.DoctorId}");
+                return BadRequest("Time slot is already booked");
+            }
+
+            // Generate a new ID for the appointment
+            appointment.Id = Guid.NewGuid().ToString();
+            appointment.IsConfirmed = false;
+
+            // Add the appointment
+            await _firebaseService.AddDocument("appointments", appointment.Id, appointment);
+
+            // Update patient's appointment list
+            patient.AppointmentIds.Add(appointment.Id);
+            await _firebaseService.UpdateDocument("patients", patient.Id, patient);
+
+            // Update doctor's appointment list
+            doctor.AppointmentIds.Add(appointment.Id);
+            await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+
+            _logger.LogInformation($"Appointment booked successfully. ID: {appointment.Id}");
+            return CreatedAtAction(nameof(GetPatientAppointments), new { patientId = appointment.PatientId }, appointment);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting appointment");
-            return StatusCode(500, "An error occurred while deleting the appointment");
+            _logger.LogError(ex, "Error booking appointment");
+            return StatusCode(500, "An error occurred while booking the appointment");
         }
     }
 
-    [HttpPut("appointment/edit")]
-    public IActionResult EditAppointment([FromBody] Appointment updatedAppointment)
+    [HttpDelete("appointments/{appointmentId}")]
+    public async Task<IActionResult> CancelAppointment(string appointmentId)
     {
         try
         {
-            _logger.LogInformation("Received appointment edit request: {@Appointment}", updatedAppointment);
-            
-            if (string.IsNullOrEmpty(updatedAppointment.Id))
+            _logger.LogInformation($"Received appointment cancellation request for ID: {appointmentId}");
+
+            // Get the appointment
+            var appointment = await _firebaseService.GetDocument<Appointment>("appointments", appointmentId);
+            if (appointment == null)
             {
-                _logger.LogWarning("No appointment ID provided in edit request");
-                return BadRequest("Appointment ID is required");
+                _logger.LogWarning($"Appointment not found: {appointmentId}");
+                return NotFound($"Appointment with ID {appointmentId} not found");
             }
 
-            var existingAppointment = DataStorage.Appointments.FirstOrDefault(a => a.Id == updatedAppointment.Id);
-            if (existingAppointment == null)
+            // Get the patient
+            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
+            if (patient != null)
             {
-                _logger.LogWarning("Appointment with ID {Id} not found", updatedAppointment.Id);
-                return NotFound($"Appointment with ID {updatedAppointment.Id} not found");
+                patient.AppointmentIds.Remove(appointmentId);
+                await _firebaseService.UpdateDocument("patients", patient.Id, patient);
             }
 
-            // Update the appointment properties
-            existingAppointment.Date = updatedAppointment.Date;
-            existingAppointment.Time = updatedAppointment.Time;
-            existingAppointment.Reason = updatedAppointment.Reason;
-            existingAppointment.Day = updatedAppointment.Day;
-            existingAppointment.Email = updatedAppointment.Email;
+            // Get the doctor
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
+            if (doctor != null)
+            {
+                doctor.AppointmentIds.Remove(appointmentId);
+                await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+            }
 
-            _logger.LogInformation("Appointment with ID {Id} updated successfully", updatedAppointment.Id);
-            
-            return Ok(new { message = "Appointment updated successfully" });
+            // Delete the appointment
+            await _firebaseService.DeleteDocument("appointments", appointmentId);
+
+            _logger.LogInformation($"Appointment cancelled successfully. ID: {appointmentId}");
+            return NoContent();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating appointment");
-            return StatusCode(500, "An error occurred while updating the appointment");
+            _logger.LogError(ex, $"Error cancelling appointment: {appointmentId}");
+            return StatusCode(500, "An error occurred while cancelling the appointment");
         }
     }
 }
 
-public class DeleteAppointmentRequest
+
+/*
+// Temporarily commented out for testing care plan functionality
+using Microsoft.AspNetCore.Mvc;
+
+namespace ClinicConnectService.Controllers
 {
-    public string Id { get; set; }
-} 
+    // ... existing code ...
+}
+*/ 
