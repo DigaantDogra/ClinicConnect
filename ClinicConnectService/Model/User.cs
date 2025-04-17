@@ -1,12 +1,14 @@
 using Google.Cloud.Firestore;
+using System.ComponentModel.DataAnnotations;
 
 namespace ClinicConnectService.Model;
 
 [FirestoreData]
 public class User
 {
+    [Required]
     [FirestoreProperty]
-    public string Id { get; set; } = string.Empty;
+    public required string Id { get; set; }
     
     [FirestoreProperty]
     public required string UserName { get; set; }
@@ -15,6 +17,13 @@ public class User
     public required string Email { get; set; }
     
     [FirestoreProperty]
+<<<<<<< HEAD
+=======
+    public string Password { get; set; }
+    
+    [Required]
+    [FirestoreProperty]
+>>>>>>> main
     public required string Type { get; set; }
     
     [FirestoreProperty]

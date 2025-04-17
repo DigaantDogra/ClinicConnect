@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
+import { useUser } from '../../../Context/UserContext';
 import useScheduleViewModel from './ScheduleViewModel';
 import { Link, useNavigate } from "react-router-dom";
 import { BsTrashFill, BsPencilFill } from "react-icons/bs"
 import { BackgroundCanvas } from '../../BackgroundCanvas';
 
-// Mock user ID for testing - replace this with actual auth later
-const MOCK_USER_ID = 'patient-123';
-
 export const PatientSchedule = () => {
+  const { getUserId } = useUser();
+  const patientId = getUserId();
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAppointments(MOCK_USER_ID);
-  }, [fetchAppointments]);
+    if (patientId) {
+      fetchAppointments(patientId);
+    }
+  }, [patientId, fetchAppointments]);
 
   const handleDelete = async (appointmentId) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {
@@ -28,7 +30,21 @@ export const PatientSchedule = () => {
 
   const handleEditClick = (appointment) => {
     // Navigate to Booking page with appointment data
-    navigate('/Patient/Booking', { state: { appointment } });
+    navigate('/Patient/Booking', { 
+      state: { 
+        appointment: appointment,
+        isEditMode: true
+      } 
+    });
+  };
+
+  const getStatusBadge = (isApproved) => {
+    const baseClasses = "px-2 py-1 rounded-full text-xs font-semibold";
+    if (isApproved) {
+      return <span className={`${baseClasses} bg-green-100 text-green-800`}>Approved</span>;
+    } else {
+      return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>Pending</span>;
+    }
   };
 
   if (isLoading) {
@@ -58,6 +74,7 @@ export const PatientSchedule = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -69,6 +86,9 @@ export const PatientSchedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctorName}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {getStatusBadge(appointment.isConfirmed)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEditClick(appointment)}
@@ -78,7 +98,7 @@ export const PatientSchedule = () => {
                         <BsPencilFill />
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(appointment.id)}
+                        onClick={() => handleDelete(appointment.id)}
                         className="text-red-500 text-xl/snug hover:text-red-700"
                         title="Delete Appointment"
                       >

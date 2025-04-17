@@ -1,13 +1,24 @@
-import { useState } from "react"
-import { Link, useLocation } from "react-router-dom";
-import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent, BsFileEarmarkPlus, BsFileEarmark, BsFileCheck } from "react-icons/bs"
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent, BsDoorOpen } from "react-icons/bs"
+import { signOut } from 'firebase/auth';
+import { auth } from '../Service/firebase';
 
 const defaultPage = "Home"
 
-export const Navbar = ({ user = "Patient" }) => {
-    let [activeIcon, setActiveIcon] = useState(defaultPage);
+export const Navbar = ({ user, onLogout }) => {
+    let [activeIcon, setActiveIcon] = React.useState(defaultPage);
     const location = useLocation();
     const isDoctor = location.pathname.includes("/Doctor");
+  
+    const handleLogout = async () => {
+      try {
+        await signOut(auth);
+        onLogout();
+      } catch (error) {
+        console.error('Error signing out:', error);
+      }
+    };
   
     return (
       <>
@@ -33,24 +44,6 @@ export const Navbar = ({ user = "Patient" }) => {
                   isActive={activeIcon === "Availability"}
                   onClick={() => setActiveIcon("Availability")}
                 />
-                <SideIcon
-                  icon={<BsFileEarmarkPlus />}
-                  name={`${user}/GeneratePlan`}
-                  isActive={activeIcon === "GeneratePlan"}
-                  onClick={() => setActiveIcon("GeneratePlan")}
-                />
-                <SideIcon
-                  icon={<BsFileEarmark />}
-                  name={`${user}/DraftPlan`}
-                  isActive={activeIcon === "DraftPlan"}
-                  onClick={() => setActiveIcon("DraftPlan")}
-                />
-                <SideIcon
-                  icon={<BsFileCheck />}
-                  name={`${user}/Approval`}
-                  isActive={activeIcon === "Approval"}
-                  onClick={() => setActiveIcon("Approval")}
-                />
               </>
             ) : (
               <>
@@ -72,8 +65,14 @@ export const Navbar = ({ user = "Patient" }) => {
                   isActive={activeIcon === "Planner"}
                   onClick={() => setActiveIcon("Planner")}
                 />
+                
               </>
             )}
+            <SideIcon
+                  icon={<BsDoorOpen />}
+                  name={`login`}
+                  onClick={handleLogout}
+                />
           </div>
         </div>
       </>
@@ -81,7 +80,10 @@ export const Navbar = ({ user = "Patient" }) => {
   };
   
   const SideIcon = ({ icon, name = "Home", isActive = false, onClick }) => {
-    const displayName = name.split('/').pop();
+    var displayName = name.split('/').pop();
+    if (name === "login") {
+      displayName = "LogOut";
+    }
     return (
       <Link to={`/${name}`} onClick={onClick} className={isActive ? "sidebar-icon group" : "sidebar-icon-h group"}>
             {icon}
