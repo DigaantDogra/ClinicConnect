@@ -22,21 +22,9 @@ function App({ user = "Patient" }) {
             <Route path="/" element={<Navigate to={`/${user}`} replace />} />
             {user === "Patient" ? (
               <>
-                <Route path={`/${user}`} element={<PatientHome userName={user} />} />
-                <Route path={`/${user}/Home`} element={<PatientHome userName={user} />} />
-                <Route path={`/${user}/Schedule`} element={<PatientSchedule userName={user} />} />
-                <Route path={`/${user}/Search`} element={<Search userName={user} />} />
-                <Route path={`/${user}/Booking`} element={<PatientBooking userName={user} />} />
               </>
             ) : (
               <>
-                <Route path={`/${user}`} element={<DoctorHome />} />
-                <Route path={`/${user}/Home`} element={<DoctorHome />} />
-                <Route path={`/${user}/Appointment`} element={<DoctorAppointment />} />
-                <Route path={`/${user}/Availability`} element={<DoctorAvailability />} />
-                <Route path={`/${user}/GeneratePlan`} element={<GeneratePlanPage />} />
-                <Route path={`/${user}/DraftPlan`} element={<DraftPlanPage />} />
-                <Route path={`/${user}/Approval`} element={<ApprovalPage />} />
               </>
             )}
           </Routes>
