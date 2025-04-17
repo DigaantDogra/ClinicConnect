@@ -1,62 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import useBookingViewModel from './BookingViewModel';
+import { useBookingViewModel } from './BookingViewModel';
 import { BackgroundCanvas } from "../../BackgroundCanvas"
 
 // Mock user ID for testing - replace this with actual auth later
 const MOCK_USER_ID = 'patient-123';
+const MOCK_Doctor_ID = 'doctor-123';
 
 export const PatientBooking = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [availability, setAvailability] = useState({});
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
   const [reason, setReason] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
-  const [appointmentId, setAppointmentId] = useState(null);
+  const [doctorId, setDoctorId] = useState('');
+  const [doctorError, setDoctorError] = useState('');
+  const { isLoading, error, availability, fetchDoctorAvailability, createAppointment, updateAppointment } = useBookingViewModel();
 
-  const { isLoading, error, submitBooking } = useBookingViewModel();
-
+  // Initialize doctorId and fetch availability immediately
   useEffect(() => {
-    // Check if we're in edit mode
-    if (location.state?.appointment) {
-      const { appointment } = location.state;
-      setIsEditMode(true);
-      setAppointmentId(appointment.id);
-      setSelectedDate(appointment.date);
-      setSelectedTime(appointment.time);
-      setReason(appointment.reason);
+    try {
+      console.log('Location state:', location.state);
+      
+      if (location.state?.appointment) {
+        const { appointment } = location.state;
+        console.log('Edit mode - Appointment data:', appointment);
+        setIsEditMode(true);
+        setSelectedDate(appointment.date);
+        setSelectedTime(appointment.timeSlot);
+        setReason(appointment.reason);
+        setDoctorId(appointment.doctorId);
+      } else if (location.state?.doctorId) {
+        console.log('New booking - Doctor ID:', location.state.doctorId);
+        setDoctorId(location.state.doctorId);
+      } else {
+        console.error('No doctor ID provided in location state');
+        setDoctorError('No doctor selected. Please go back and select a doctor.');
+      }
+    } catch (err) {
+      console.error('Error initializing booking:', err);
+      setDoctorError('Error initializing booking. Please try again.');
     }
   }, [location.state]);
 
-  // Simulate fetching availability data (replace with API call)
+  // Fetch availability whenever doctorId changes
   useEffect(() => {
-    // Generate random availability for demonstration
-    const fakeAvailability = {};
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // Generate available dates (excluding weekends and random days)
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      if (date.getDay() !== 0 && date.getDay() !== 6 && Math.random() > 0.3) {
-        fakeAvailability[date.toISOString().split('T')[0]] = generateTimeSlots();
+    const fetchAvailability = async () => {
+      if (!doctorId) {
+        console.log('No doctor ID available to fetch availability');
+        return;
       }
-    }
-    
-    setAvailability(fakeAvailability);
-  }, [currentDate]);
 
-  const generateTimeSlots = () => {
-    return [
-      '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
-      '11:00 AM', '11:30 AM', '02:00 PM', '02:30 PM',
-      '03:00 PM', '03:30 PM', '04:00 PM'
-    ];
-  };
+      try {
+        console.log('Fetching availability for doctor:', doctorId);
+        const result = await fetchDoctorAvailability(doctorId);
+        console.log('Availability fetch result:', result);
+        setDoctorError('');
+      } catch (err) {
+        console.error('Error fetching doctor availability:', err);
+        setDoctorError('Failed to fetch doctor availability. Please try again.');
+      }
+    };
+
+    fetchAvailability();
+  }, [doctorId, fetchDoctorAvailability]);
 
   const getCalendarGrid = () => {
     const year = currentDate.getFullYear();
@@ -102,9 +111,20 @@ export const PatientBooking = () => {
   };
 
   const handleDateSelect = (date) => {
-    if (!date.currentMonth || date.isPast || !availability[date.isoDate]) return;
+    console.log('Date selected:', date);
+    console.log('Availability for selected date:', availability[date.isoDate]);
+    
+    if (!date.currentMonth || date.isPast || !availability[date.isoDate]) {
+      console.log('Date not selectable:', {
+        currentMonth: date.currentMonth,
+        isPast: date.isPast,
+        hasAvailability: !!availability[date.isoDate]
+      });
+      return;
+    }
+    
     setSelectedDate(date.isoDate);
-    setSelectedTime(null); // Reset selected time when date changes
+    setSelectedTime(''); // Reset selected time when date changes
   };
 
   const changeMonth = (offset) => {
@@ -116,88 +136,111 @@ export const PatientBooking = () => {
   };
 
   const handleBookNow = async () => {
-    if (!selectedDate || !selectedTime || !reason) {
-      alert('Please select a date, time, and provide a reason for the appointment');
-      return;
-    }
+    try {
+      const appointmentData = {
+        patientId: MOCK_USER_ID,
+        doctorId: doctorId,
+        date: selectedDate,
+        timeSlot: selectedTime,
+        reason: reason
+      };
 
-    const appointmentData = {
-      id: appointmentId,
-      date: selectedDate,
-      time: selectedTime,
-      reason: reason,
-      patientId: MOCK_USER_ID
-    };
+      let success;
+      if (isEditMode) {
+        success = await updateAppointment(location.state.appointment.id, appointmentData);
+      } else {
+        success = await createAppointment(appointmentData);
+      }
 
-    const success = await submitBooking(appointmentData);
-    
-    if (success) {
-      // Redirect to schedule page on success
-      navigate('/Schedule');
+      if (success) {
+        navigate('/Patient/Schedule');
+      }
+    } catch (err) {
+      console.error('Error in handleBookNow:', err);
     }
   };
 
   return (
     <BackgroundCanvas section={
       <div className="flex justify-between items-start mt-7">
-        <div className="max-w-xl ml-10 p-6 space-y-6">
-          {/* Calendar Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">
-                {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-              </h3>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => changeMonth(-1)}
-                  className="p-2 hover:bg-gray-100 rounded"
-                >
-                  ←
-                </button>
-                <button
-                  onClick={() => changeMonth(1)}
-                  className="p-2 hover:bg-gray-100 rounded"
-                >
-                  →
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-7 gap-px bg-gray-200">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="bg-white p-4 text-center text-sm font-medium">
-                  {day}
-                </div>
-              ))}
-              
-              {getCalendarGrid().map((date, index) => {
-                const isAvailable = availability[date.isoDate] && !date.isPast;
-                const isSelected = selectedDate === date.isoDate;
-
-                return (
-                  <div
-                    key={index}
-                    onClick={() => handleDateSelect(date)}
-                    className={`
-                      min-h-[60px] p-2 bg-white hover:bg-gray-50 cursor-pointer
-                      ${!date.currentMonth ? 'text-gray-400' : ''}
-                      ${date.isPast ? 'bg-gray-100 cursor-not-allowed' : ''}
-                      ${isAvailable ? 'hover:bg-green-50' : ''}
-                      ${isSelected ? 'ring-2 ring-blue-500' : ''}
-                    `}
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="text-sm">{date.date}</span>
-                      {isAvailable && (
-                        <span className="w-2 h-2 bg-green-500 rounded-full mt-1" />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+        {doctorError ? (
+          <div className="w-full text-center p-4">
+            <div className="bg-red-100 text-red-700 p-4 rounded-lg">
+              <p className="font-semibold">{doctorError}</p>
+              <button
+                onClick={() => navigate('/Patient/Search')}
+                className="mt-2 text-blue-500 hover:text-blue-700"
+              >
+                Go back to doctor selection
+              </button>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="max-w-xl ml-10 p-6 space-y-6">
+            {/* Calendar Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">
+                  {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => changeMonth(-1)}
+                    className="p-2 hover:bg-gray-100 rounded"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => changeMonth(1)}
+                    className="p-2 hover:bg-gray-100 rounded"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-px bg-gray-200">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="bg-white p-4 text-center text-sm font-medium">
+                    {day}
+                  </div>
+                ))}
+                
+                {getCalendarGrid().map((date, index) => {
+                  const isAvailable = date.currentMonth && !date.isPast && availability[date.isoDate];
+                  const isSelected = selectedDate === date.isoDate;
+                  const availableSlots = isAvailable ? availability[date.isoDate].length : 0;
+
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => handleDateSelect(date)}
+                      className={`
+                        p-4 text-center cursor-pointer
+                        ${date.currentMonth ? 'bg-white' : 'bg-gray-50'}
+                        ${isAvailable ? 'hover:bg-blue-50' : 'opacity-50 cursor-not-allowed'}
+                        ${isSelected ? 'bg-blue-100 border-2 border-blue-500' : ''}
+                        ${date.isPast ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                    >
+                      <span className={`
+                        ${date.currentMonth ? 'text-gray-900' : 'text-gray-400'}
+                        ${isSelected ? 'font-bold' : ''}
+                      `}>
+                        {date.date}
+                      </span>
+                      {isAvailable && (
+                        <div className="mt-1 text-xs text-blue-500">
+                          {availableSlots} slot{availableSlots !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col mt-7">
           <div className="min-w-xl space-y-4">
@@ -249,22 +292,20 @@ export const PatientBooking = () => {
           <div className="min-w-xl space-y-4 mt-5 mr-6">
             <h3 className="font-semibold">Reason</h3>
             <textarea
-              className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Reason for Appointment"
-              rows={10}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
+              className="w-full p-2 border rounded"
+              rows={4}
+              placeholder="Please describe the reason for your appointment"
             />
-          </div>
-
-          <div className="mt-6">
             <button
               onClick={handleBookNow}
+              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
               disabled={isLoading}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-blue-300"
             >
-              {isLoading ? 'Saving...' : isEditMode ? 'Update Appointment' : 'Book Now'}
+              {isLoading ? 'Processing...' : isEditMode ? 'Update Appointment' : 'Book Now'}
             </button>
+            {error && <p className="text-red-500">{error}</p>}
           </div>
         </div>
       </div>

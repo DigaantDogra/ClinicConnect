@@ -193,6 +193,23 @@ public class DoctorApiController : ControllerBase
             return StatusCode(500, "An error occurred while deleting availability");
         }
     }
+
+    [HttpGet("getDoctors")]
+    public async Task<ActionResult<IEnumerable<Doctor>>> GetAllDoctors()
+    {
+        try
+        {
+            _logger.LogInformation("Fetching all doctors");
+            var doctors = await _firebaseService.QueryCollection<Doctor>("doctors", d => true);
+            _logger.LogInformation($"Successfully fetched {doctors.Count} doctors");
+            return Ok(doctors);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all doctors");
+            return StatusCode(500, "An error occurred while fetching doctors");
+        }
+    }
 }
 
 

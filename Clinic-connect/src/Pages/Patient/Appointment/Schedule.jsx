@@ -28,7 +28,12 @@ export const PatientSchedule = () => {
 
   const handleEditClick = (appointment) => {
     // Navigate to Booking page with appointment data
-    navigate('/Patient/Booking', { state: { appointment } });
+    navigate('/Patient/Booking', { 
+      state: { 
+        appointment: appointment,
+        isEditMode: true
+      } 
+    });
   };
 
   if (isLoading) {
@@ -78,7 +83,7 @@ export const PatientSchedule = () => {
                         <BsPencilFill />
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(appointment.id)}
+                        onClick={() => handleDelete(appointment.id)}
                         className="text-red-500 text-xl/snug hover:text-red-700"
                         title="Delete Appointment"
                       >

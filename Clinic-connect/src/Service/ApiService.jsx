@@ -199,6 +199,28 @@ class ApiService {
       throw error;
     }
   }
+
+  static async getAllDoctors() {
+    try {
+      console.log('Fetching all doctors');
+      const response = await fetch(`${this.doctorBaseUrl}/getDoctors`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch doctors: ${errorText}`);
+      }
+
+      const doctors = await response.json();
+      console.log('Doctors fetched successfully:', doctors);
+      return doctors;
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      throw error;
+    }
+  }
 }
 
 export default ApiService;
