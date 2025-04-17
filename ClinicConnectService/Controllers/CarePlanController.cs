@@ -175,7 +175,7 @@ namespace ClinicConnectService.Controllers
                 carePlan.Notes = request.Notes;
                 carePlan.DateCreated = DateTime.UtcNow.ToString("o");
 
-                // Save to Firebase
+                // Save to Firebasea
                 await _firebaseService.UpdateDocument(COLLECTION_NAME, carePlan.Id, carePlan);
 
                 return Ok(carePlan);
