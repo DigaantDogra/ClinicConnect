@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAppointmentViewModel from "./AppointmentViewModel";
-import { FaCheck, FaTimes, FaTrash } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa";
 
 const MOCK_DOCTOR_ID = 'doctor-123';
 
-export const DoctorAppointment = () => {
-  const navigate = useNavigate();
+export const DoctorAppointment = ({ doctorId }) => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const {
     appointments,
     isLoading,
     error,
     fetchAppointments,
-    updateAppointmentStatus,
-    deleteAppointment
+    approveAppointment
   } = useAppointmentViewModel();
 
   useEffect(() => {
@@ -27,44 +24,23 @@ export const DoctorAppointment = () => {
     }
   }, [MOCK_DOCTOR_ID, fetchAppointments]);
 
-  const handleStatusUpdate = async (appointmentId, newStatus) => {
-    try {
-      await updateAppointmentStatus(appointmentId, newStatus);
-      await fetchAppointments(doctorId);
-      setShowConfirmModal(false);
-      setShowCancelModal(false);
-    } catch (err) {
-      console.error(`Error ${newStatus === "confirmed" ? "confirming" : "cancelling"} appointment:`, err);
-    }
-  };
-
-  const handleDelete = async () => {
+  const handleApprove = async () => {
     if (!selectedAppointment) return;
     
+    setIsProcessing(true);
     try {
-      await deleteAppointment(selectedAppointment.id);
-      await fetchAppointments(doctorId);
-      setShowDeleteModal(false);
+      await approveAppointment(selectedAppointment.id, MOCK_DOCTOR_ID);
+      setShowApproveModal(false);
     } catch (err) {
-      console.error("Error deleting appointment:", err);
+      console.error("Error approving appointment:", err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleActionClick = (appointment, type) => {
+  const handleApproveClick = (appointment) => {
     setSelectedAppointment(appointment);
-    switch (type) {
-      case "confirm":
-        setShowConfirmModal(true);
-        break;
-      case "cancel":
-        setShowCancelModal(true);
-        break;
-      case "delete":
-        setShowDeleteModal(true);
-        break;
-      default:
-        break;
-    }
+    setShowApproveModal(true);
   };
 
   const getStatusBadge = (status) => {
@@ -121,33 +97,16 @@ export const DoctorAppointment = () => {
                   <td className="py-3 px-4">{appointment.reason}</td>
                   <td className="py-3 px-4">{getStatusBadge(appointment.status)}</td>
                   <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      {appointment.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => handleActionClick(appointment, "confirm")}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-full"
-                            title="Confirm Appointment"
-                          >
-                            <FaCheck />
-                          </button>
-                          <button
-                            onClick={() => handleActionClick(appointment, "cancel")}
-                            className="p-2 text-yellow-600 hover:bg-yellow-100 rounded-full"
-                            title="Cancel Appointment"
-                          >
-                            <FaTimes />
-                          </button>
-                        </>
-                      )}
+                    {appointment.status === "pending" && (
                       <button
-                        onClick={() => handleActionClick(appointment, "delete")}
-                        className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                        title="Delete Appointment"
+                        onClick={() => handleApproveClick(appointment)}
+                        className="p-2 text-green-600 hover:bg-green-100 rounded-full"
+                        title="Approve Appointment"
+                        disabled={isProcessing}
                       >
-                        <FaTrash />
+                        <FaCheck />
                       </button>
-                    </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -155,72 +114,26 @@ export const DoctorAppointment = () => {
           </table>
         </div>
 
-        {/* Confirmation Modal */}
-        {showConfirmModal && (
+        {/* Approve Modal */}
+        {showApproveModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Confirm Appointment</h3>
-              <p className="mb-4">Are you sure you want to confirm this appointment?</p>
+              <h3 className="text-lg font-semibold mb-4">Approve Appointment</h3>
+              <p className="mb-4">Are you sure you want to approve this appointment?</p>
               <div className="flex justify-end space-x-4">
                 <button
-                  onClick={() => setShowConfirmModal(false)}
+                  onClick={() => setShowApproveModal(false)}
                   className="px-4 py-2 bg-gray-200 rounded"
+                  disabled={isProcessing}
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleStatusUpdate(selectedAppointment.id, "confirmed")}
+                  onClick={handleApprove}
                   className="px-4 py-2 bg-green-500 text-white rounded"
+                  disabled={isProcessing}
                 >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cancellation Modal */}
-        {showCancelModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Cancel Appointment</h3>
-              <p className="mb-4">Are you sure you want to cancel this appointment?</p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setShowCancelModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleStatusUpdate(selectedAppointment.id, "cancelled")}
-                  className="px-4 py-2 bg-red-500 text-white rounded"
-                >
-                  Yes, Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Delete Appointment</h3>
-              <p className="mb-4">Are you sure you want to delete this appointment? This action cannot be undone.</p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-500 text-white rounded"
-                >
-                  Delete
+                  {isProcessing ? "Approving..." : "Approve"}
                 </button>
               </div>
             </div>

@@ -263,4 +263,40 @@ public class DoctorApiController : ControllerBase
             return StatusCode(500, "Error booking appointment");
         }
     }
+
+    [HttpPut("appointments/{appointmentId}/approve")]
+    public async Task<IActionResult> ApproveAppointment(string appointmentId)
+    {
+        try
+        {
+            _logger.LogInformation($"Approving appointment: {appointmentId}");
+
+            // Get the appointment
+            var appointment = await _firebaseService.GetDocument<Appointment>("appointments", appointmentId);
+            if (appointment == null)
+            {
+                _logger.LogWarning($"Appointment not found: {appointmentId}");
+                return NotFound("Appointment not found");
+            }
+
+            // Check if the appointment is in pending status
+            if (appointment.IsConfirmed)
+            {
+                _logger.LogWarning($"Appointment {appointmentId} is already confirmed");
+                return BadRequest("Appointment is already confirmed");
+            }
+
+            // Update the appointment status
+            appointment.IsConfirmed = true;
+            await _firebaseService.UpdateDocument("appointments", appointmentId, appointment);
+
+            _logger.LogInformation($"Appointment {appointmentId} approved successfully");
+            return Ok(new { message = "Appointment approved successfully", appointment });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error approving appointment: {appointmentId}");
+            return StatusCode(500, "Error approving appointment");
+        }
+    }
 }

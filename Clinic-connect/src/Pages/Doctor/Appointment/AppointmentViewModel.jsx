@@ -66,43 +66,29 @@ const useAppointmentViewModel = () => {
     }
   }, []);
 
-  const updateAppointmentStatus = useCallback(async (appointmentId, newStatus) => {
+  const approveAppointment = useCallback(async (appointmentId, doctorId) => {
     setIsLoading(true);
     setError(null);
     try {
-      await ApiService.updateAppointmentStatus(appointmentId, newStatus);
-      // Note: We don't refresh appointments here as the view will handle it
+      console.log('Approving appointment:', appointmentId);
+      await ApiService.approveAppointment(appointmentId);
+      // Refresh appointments after approval
+      await fetchAppointments(doctorId);
     } catch (err) {
-      console.error('Error updating appointment status:', err);
-      setError('Failed to update appointment status');
+      console.error('Error approving appointment:', err);
+      setError('Failed to approve appointment');
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const deleteAppointment = useCallback(async (appointmentId) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      await ApiService.deleteAppointment(appointmentId);
-      // Note: We don't refresh appointments here as the view will handle it
-    } catch (err) {
-      console.error('Error deleting appointment:', err);
-      setError('Failed to delete appointment');
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  }, [fetchAppointments]);
 
   return {
     appointments,
     isLoading,
     error,
     fetchAppointments,
-    updateAppointmentStatus,
-    deleteAppointment
+    approveAppointment
   };
 };
 

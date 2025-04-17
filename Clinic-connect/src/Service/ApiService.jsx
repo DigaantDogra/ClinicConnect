@@ -139,6 +139,19 @@ class ApiService {
     }
   }
 
+  static async approveAppointment(appointmentId) {
+    try {
+      const response = await fetch(`${this.doctorBaseUrl}/appointments/${appointmentId}/approve`, {
+        method: 'PUT',
+        headers: await this.getHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error approving appointment:', error);
+      throw error;
+    }
+  }
+
   static async addAvailability(availability) {
     try {
       console.log('Adding availability:', availability);
