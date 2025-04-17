@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent } from "react-icons/bs"
+import { Link, useLocation } from 'react-router-dom';
+import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent, BsDoorOpen } from "react-icons/bs"
 import { signOut } from 'firebase/auth';
 import { auth } from '../Service/firebase';
 
@@ -10,12 +10,11 @@ export const Navbar = ({ user, onLogout }) => {
     let [activeIcon, setActiveIcon] = React.useState(defaultPage);
     const location = useLocation();
     const isDoctor = location.pathname.includes("/Doctor");
-    const navigate = useNavigate();
   
     const handleLogout = async () => {
       try {
         await signOut(auth);
-        navigate('/');
+        onLogout();
       } catch (error) {
         console.error('Error signing out:', error);
       }
@@ -66,16 +65,14 @@ export const Navbar = ({ user, onLogout }) => {
                   isActive={activeIcon === "Planner"}
                   onClick={() => setActiveIcon("Planner")}
                 />
+                
               </>
             )}
-          </div>
-          <div className="p-4">
-            <button
-              onClick={handleLogout}
-              className="w-full p-2 bg-red-600 hover:bg-red-700 rounded"
-            >
-              Logout
-            </button>
+            <SideIcon
+                  icon={<BsDoorOpen />}
+                  name={`login`}
+                  onClick={handleLogout}
+                />
           </div>
         </div>
       </>
@@ -83,7 +80,10 @@ export const Navbar = ({ user, onLogout }) => {
   };
   
   const SideIcon = ({ icon, name = "Home", isActive = false, onClick }) => {
-    const displayName = name.split('/').pop();
+    var displayName = name.split('/').pop();
+    if (name === "login") {
+      displayName = "LogOut";
+    }
     return (
       <Link to={`/${name}`} onClick={onClick} className={isActive ? "sidebar-icon group" : "sidebar-icon-h group"}>
             {icon}

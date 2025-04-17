@@ -17,7 +17,7 @@ const InitialSignup = () => {
           <div className="home-buttons">
             <button 
               className="home-button primary"
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate('/select-type')}
             >
               Get Started
             </button>

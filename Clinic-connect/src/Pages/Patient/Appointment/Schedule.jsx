@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
+import { useUser } from '../../../Context/UserContext';
 import useScheduleViewModel from './ScheduleViewModel';
 import { Link, useNavigate } from "react-router-dom";
 import { BsTrashFill, BsPencilFill } from "react-icons/bs"
 import { BackgroundCanvas } from '../../BackgroundCanvas';
 
-// Mock user ID for testing - replace this with actual auth later
-const MOCK_USER_ID = 'patient-123';
-
 export const PatientSchedule = () => {
+  const { getUserId } = useUser();
+  const patientId = getUserId();
   const { appointments, isLoading, error, fetchAppointments, deleteAppointment } = useScheduleViewModel();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAppointments(MOCK_USER_ID);
-  }, [fetchAppointments]);
+    if (patientId) {
+      fetchAppointments(patientId);
+    }
+  }, [patientId, fetchAppointments]);
 
   const handleDelete = async (appointmentId) => {
     if (window.confirm('Are you sure you want to cancel this appointment?')) {

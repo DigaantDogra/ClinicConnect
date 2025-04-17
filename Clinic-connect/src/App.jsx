@@ -8,103 +8,138 @@ import { DoctorHome } from './Pages/Doctor/Home/Home'
 import { DoctorAppointment } from './Pages/Doctor/Appointment/Appointment'
 import { DoctorAvailability } from './Pages/Doctor/Availability/Availability'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { auth } from './Service/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Login from './Pages/Login';
 import Signup from './Pages/Signup';
 import InitialSignup from './Pages/InitialSignup';
+import UserTypeSelection from './Pages/UserTypeSelection';
+import LoadingScreen from './Pages/Login';
+import { UserProvider, useUser } from './Context/UserContext';
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [userType, setUserType] = useState(null);
+// Create a separate component for the authenticated layout
+const AuthenticatedLayout = ({ children }) => {
+  const { userType, userData, handleLogout } = useUser();
+  return (
+    <>
+      <Navbar user={userType} onLogout={handleLogout} />
+      <main className="flex-1 ml-20 p-8">
+        {children}
+      </main>
+    </>
+  );
+};
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-      setUserType("Patient"); // You can set this based on your authentication logic
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+// Create a separate component for protected routes
+const ProtectedRoute = ({ children, requiredUserType }) => {
+  const { user, userType, loading } = useUser();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (requiredUserType && userType !== requiredUserType) {
+    return <Navigate to={`/${userType}/Home`} />;
+  }
+
+  return children;
+};
+
+// Create a separate component for the app content
+const AppContent = () => {
+  const { user, userType, userData, loading } = useUser();
+
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={!user ? <InitialSignup /> : <Navigate to={`/${userType}/Home`} />} />
+      <Route path="/login" element={!user ? <Login /> : <Navigate to={`/${userType}/Home`} />} />
+      <Route path="/select-type" element={!user ? <UserTypeSelection /> : <Navigate to={`/${userType}/Home`} />} />
+      <Route path="/signup" element={!user ? <Signup /> : <Navigate to={`/${userType}/Home`} />} />
+      
+      {/* Protected Patient Routes */}
+      <Route path="/Patient" element={
+        <ProtectedRoute requiredUserType="Patient">
+          <Navigate to="/Patient/Home" />
+        </ProtectedRoute>
+      } />
+      <Route path="/Patient/Home" element={
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
+            <PatientHome userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/Patient/Schedule" element={
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
+            <PatientSchedule userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/Patient/Search" element={
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
+            <Search userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/Patient/Booking" element={
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
+            <PatientBooking userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+
+      {/* Protected Doctor Routes */}
+      <Route path="/Doctor" element={
+        <ProtectedRoute requiredUserType="Doctor">
+          <Navigate to="/Doctor/Home" />
+        </ProtectedRoute>
+      } />
+      <Route path="/Doctor/Home" element={
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
+            <DoctorHome userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/Doctor/Appointment" element={
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
+            <DoctorAppointment userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/Doctor/Availability" element={
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
+            <DoctorAvailability userData={userData} />
+          </AuthenticatedLayout>
+        </ProtectedRoute>
+      } />
+
+      {/* Catch all route */}
+      <Route path="*" element={<Navigate to={user ? `/${userType}/Home` : "/"} />} />
+    </Routes>
+  );
+};
+
+// Main App component
+function App() {
+  return (
     <Router>
-      <Routes>
-        <Route path="/" element={<InitialSignup />} />
-        <Route path="/login" element={!user ? <Login /> : <Navigate to={`/${userType}/Home`} />} />
-        <Route path="/signup" element={!user ? <Signup /> : <Navigate to={`/${userType}/Home`} />} />
-        
-        {user ? (
-          <>
-            <Route path={`/${userType}`} element={<Navigate to={`/${userType}/Home`} />} />
-            <Route path={`/${userType}/Home`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  {userType === "Patient" ? <PatientHome /> : <DoctorHome />}
-                </main>
-              </>
-            } />
-            <Route path={`/${userType}/Schedule`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  <PatientSchedule />
-                </main>
-              </>
-            } />
-            <Route path={`/${userType}/Search`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  <Search />
-                </main>
-              </>
-            } />
-            <Route path={`/${userType}/Booking`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  <PatientBooking />
-                </main>
-              </>
-            } />
-            <Route path={`/${userType}/Appointment`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  <DoctorAppointment />
-                </main>
-              </>
-            } />
-            <Route path={`/${userType}/Availability`} element={
-              <>
-                <Navbar user={userType} onLogout={handleLogout} />
-                <main className="flex-1 ml-20 p-8">
-                  <DoctorAvailability />
-                </main>
-              </>
-            } />
-          </>
-        ) : (
-          <Route path="*" element={<Navigate to="/" />} />
-        )}
-      </Routes>
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </Router>
   );
 }

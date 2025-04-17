@@ -25,33 +25,44 @@ export const useBookingViewModel = () => {
       data.forEach(avail => {
         console.log('Processing availability:', avail);
         
-        // Skip if availability is not available or missing required fields
-        if (!avail || !avail.isAvailable || !avail.dates || !avail.timeSlots) {
-          console.log('Skipping invalid availability:', avail);
+        // Check for different possible property names
+        const dates = avail.Dates || avail.dates || avail.availableDates || [];
+        const timeSlots = avail.TimeSlots || avail.timeSlots || avail.availableTimeSlots || [];
+        const isAvailable = avail.IsAvailable || avail.isAvailable || true;
+
+        // Skip if no dates or time slots
+        if (!dates.length || !timeSlots.length) {
+          console.log('Skipping availability with no dates or time slots:', avail);
           return;
         }
 
-        // Process each date in the Dates list
-        avail.dates.forEach(date => {
+        // Process each date
+        dates.forEach(date => {
           if (!date) {
             console.log('Skipping invalid date');
             return;
           }
 
-          if (!formattedAvailability[date]) {
-            formattedAvailability[date] = [];
+          // Format date to YYYY-MM-DD if needed
+          const formattedDate = date.includes('T') ? date.split('T')[0] : date;
+
+          if (!formattedAvailability[formattedDate]) {
+            formattedAvailability[formattedDate] = [];
           }
           
           // Add all time slots for this date
-          avail.timeSlots.forEach(timeSlot => {
+          timeSlots.forEach(timeSlot => {
             if (!timeSlot) {
               console.log('Skipping invalid time slot');
               return;
             }
 
-            if (!formattedAvailability[date].includes(timeSlot)) {
-              formattedAvailability[date].push(timeSlot);
-              console.log(`Added time slot ${timeSlot} for date ${date}`);
+            // Format time slot if needed
+            const formattedTimeSlot = timeSlot.includes(':') ? timeSlot : `${timeSlot}:00`;
+
+            if (!formattedAvailability[formattedDate].includes(formattedTimeSlot)) {
+              formattedAvailability[formattedDate].push(formattedTimeSlot);
+              console.log(`Added time slot ${formattedTimeSlot} for date ${formattedDate}`);
             }
           });
         });

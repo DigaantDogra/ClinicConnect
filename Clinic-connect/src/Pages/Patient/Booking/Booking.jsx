@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBookingViewModel } from './BookingViewModel';
 import { BackgroundCanvas } from "../../BackgroundCanvas"
+import { useUser } from '../../../Context/UserContext';
+import { Button } from '@mui/material';
 
-// Mock user ID for testing - replace this with actual auth later
-const MOCK_USER_ID = 'patient-123';
 
 export const PatientBooking = () => {
   const location = useLocation();
@@ -17,6 +17,8 @@ export const PatientBooking = () => {
   const [doctorId, setDoctorId] = useState('');
   const [doctorError, setDoctorError] = useState('');
   const { isLoading, error, availability, fetchDoctorAvailability, createAppointment, updateAppointment } = useBookingViewModel();
+  const { getUserId } = useUser();
+  const patientId = getUserId();
 
   // Initialize doctorId and fetch availability immediately
   useEffect(() => {
@@ -136,10 +138,15 @@ export const PatientBooking = () => {
   };
 
   const handleBookNow = async () => {
+    if (!doctorId || !selectedDate || !selectedTime) {
+      alert('Please select all required fields');
+      return;
+    }
+
     try {
       const appointmentData = {
-        patientId: MOCK_USER_ID,
-        doctorId: doctorId,
+        patientId,
+        doctorId,
         date: selectedDate,
         timeSlot: selectedTime,
         reason: reason
@@ -157,6 +164,7 @@ export const PatientBooking = () => {
       }
     } catch (err) {
       console.error('Error in handleBookNow:', err);
+      alert('Failed to book appointment. Please try again.');
     }
   };
 
@@ -244,7 +252,7 @@ export const PatientBooking = () => {
 
         {/* Time Slot Selection */}
         {selectedDate && availability && availability[selectedDate] && (
-          <div className="min-w-xl space-y-5">
+          <div className="min-w-sm space-y-5">
             <h4 className="font-medium">Available Time Slots</h4>
             <div className="grid grid-cols-3 gap-2">
               {availability[selectedDate].map((time, index) => (
@@ -276,13 +284,15 @@ export const PatientBooking = () => {
               rows={4}
               placeholder="Please describe the reason for your appointment"
             />
-            <button
+            <Button
+              variant="contained"
+              color="primary"
               onClick={handleBookNow}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              fullWidth
               disabled={isLoading || !selectedDate || !selectedTime || !reason}
             >
               {isLoading ? 'Processing...' : isEditMode ? 'Update Appointment' : 'Book Now'}
-            </button>
+            </Button>
             {error && <p className="text-red-500">{error}</p>}
           </div>
         </div>

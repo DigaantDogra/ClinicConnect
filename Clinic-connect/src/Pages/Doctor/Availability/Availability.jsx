@@ -1,14 +1,17 @@
-import { BackgroundCanvas } from "../../BackgroundCanvas";
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useUser } from '../../../Context/UserContext';
+import { BackgroundCanvas } from '../../BackgroundCanvas';
 import useAvailabilityViewModel from './AvailabilityViewModel';
 
-const MOCK_DOCTOR_ID = 'doctor-123';
-
 export const DoctorAvailability = () => {
+  const { getUserId } = useUser();
+  const doctorId = getUserId();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [availability, setAvailability] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const {
     isLoading,
@@ -49,12 +52,7 @@ export const DoctorAvailability = () => {
     clearMessages();
 
     try {
-      console.log('Saving availability with:', {
-        dates: selectedDates,
-        timeSlots: selectedTimeSlots
-      });
-      
-      await addAvailability(MOCK_DOCTOR_ID, selectedDates, selectedTimeSlots);
+      await addAvailability(doctorId, selectedDates, selectedTimeSlots);
       
       // Clear the selection
       setSelectedDates([]);
@@ -77,6 +75,27 @@ export const DoctorAvailability = () => {
   const formatSelectedDates = () => {
     if (selectedDates.length === 0) return '';
     return selectedDates.map(date => new Date(date).toLocaleDateString()).join(', ');
+  };
+
+  const handleAddTimeSlot = async (date, timeSlot) => {
+    try {
+      // Here you would make an API call to add a time slot
+      console.log('Adding time slot:', {
+        doctorId,
+        date,
+        timeSlot
+      });
+
+      // Update local state
+      setAvailability(prev => prev.map(avail => 
+        avail.date === date 
+          ? { ...avail, timeSlots: [...avail.timeSlots, timeSlot] }
+          : avail
+      ));
+    } catch (error) {
+      console.error('Error adding time slot:', error);
+      alert('Failed to add time slot. Please try again.');
+    }
   };
 
   return (
