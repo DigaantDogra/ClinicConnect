@@ -198,15 +198,69 @@ public class DoctorApiController : ControllerBase
             return StatusCode(500, "An error occurred while fetching doctors");
         }
     }
+
+    [HttpPost("appointments")]
+    public async Task<IActionResult> BookAppointment([FromBody] Appointment appointment)
+    {
+        try
+        {
+            _logger.LogInformation($"Booking appointment for patient {appointment.PatientId} with doctor {appointment.DoctorId}");
+            
+            // Check if the time slot is available
+            var availability = await _firebaseService.QueryCollection<Availability>("availabilities", "DoctorId", appointment.DoctorId);
+            var availableSlot = availability.FirstOrDefault(a => 
+                a.Dates.Contains(appointment.Date) && 
+                a.TimeSlots.Contains(appointment.TimeSlot) && 
+                a.IsAvailable);
+
+            if (availableSlot == null)
+            {
+                _logger.LogWarning($"Time slot not available: {appointment.Date} {appointment.TimeSlot}");
+                return BadRequest("Selected time slot is not available");
+            }
+
+            // Check for conflicting appointments
+            var existingAppointments = await _firebaseService.QueryCollection<Appointment>("appointments", "DoctorId", appointment.DoctorId);
+            var conflictingAppointment = existingAppointments.FirstOrDefault(a => 
+                a.Date == appointment.Date && 
+                a.TimeSlot == appointment.TimeSlot);
+
+            if (conflictingAppointment != null)
+            {
+                _logger.LogWarning($"Conflicting appointment found: {conflictingAppointment.Id}");
+                return BadRequest("Time slot is already booked");
+            }
+
+            // Create the appointment
+            appointment.Id = Guid.NewGuid().ToString();
+            appointment.IsConfirmed = false;
+            await _firebaseService.AddDocument("appointments", appointment.Id, appointment);
+
+            // Update patient's appointment list
+            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
+            if (patient != null)
+            {
+                patient.AppointmentIds = patient.AppointmentIds ?? new List<string>();
+                patient.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("patients", patient.Id, patient);
+            }
+
+            // Update doctor's appointment list
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
+            if (doctor != null)
+            {
+                doctor.AppointmentIds = doctor.AppointmentIds ?? new List<string>();
+                doctor.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+            }
+
+            _logger.LogInformation($"Appointment booked successfully. ID: {appointment.Id}");
+            return CreatedAtAction(nameof(GetDoctorAppointments), new { doctorId = appointment.DoctorId }, appointment);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error booking appointment");
+            return StatusCode(500, "Error booking appointment");
+        }
+    }
 }
-
-
-/*
-// Temporarily commented out for testing care plan functionality
-using Microsoft.AspNetCore.Mvc;
-
-namespace ClinicConnectService.Controllers
-{
-    // ... existing code ...
-}
-*/ 

@@ -113,6 +113,24 @@ public class PatientApiController : ControllerBase
             appointment.IsConfirmed = false;
             await _firebaseService.AddDocument("appointments", appointment.Id, appointment);
 
+            // Update patient's appointment list
+            var patient = await _firebaseService.GetDocument<Patient>("patients", appointment.PatientId);
+            if (patient != null)
+            {
+                patient.AppointmentIds = patient.AppointmentIds ?? new List<string>();
+                patient.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("patients", patient.Id, patient);
+            }
+
+            // Update doctor's appointment list
+            var doctor = await _firebaseService.GetDocument<Doctor>("doctors", appointment.DoctorId);
+            if (doctor != null)
+            {
+                doctor.AppointmentIds = doctor.AppointmentIds ?? new List<string>();
+                doctor.AppointmentIds.Add(appointment.Id);
+                await _firebaseService.UpdateDocument("doctors", doctor.Id, doctor);
+            }
+
             _logger.LogInformation($"Appointment booked successfully. ID: {appointment.Id}");
             return CreatedAtAction(nameof(GetPatientAppointments), new { patientId = appointment.PatientId }, appointment);
         }
