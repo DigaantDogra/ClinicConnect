@@ -21,12 +21,18 @@ const Login = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      // Fetch user data to determine user type
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        // Navigate based on user type
-        navigate(`/${userData.userType}/Home`);
+      // Try to get user data from both collections
+      const [patientDoc, doctorDoc] = await Promise.all([
+        getDoc(doc(db, 'patients', user.uid)),
+        getDoc(doc(db, 'doctors', user.uid))
+      ]);
+
+      if (patientDoc.exists()) {
+        const userData = patientDoc.data();
+        navigate('/Patient/Home');
+      } else if (doctorDoc.exists()) {
+        const userData = doctorDoc.data();
+        navigate('/Doctor/Home');
       } else {
         setError('User data not found');
       }

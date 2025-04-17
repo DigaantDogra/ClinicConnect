@@ -26,13 +26,13 @@ export const useBookingViewModel = () => {
         console.log('Processing availability:', avail);
         
         // Skip if availability is not available or missing required fields
-        if (!avail || !avail.isAvailable || !avail.dates || !avail.timeSlots) {
+        if (!avail || !avail.IsAvailable || !avail.Dates || !avail.TimeSlots) {
           console.log('Skipping invalid availability:', avail);
           return;
         }
 
         // Process each date in the Dates list
-        avail.dates.forEach(date => {
+        avail.Dates.forEach(date => {
           if (!date) {
             console.log('Skipping invalid date');
             return;
@@ -43,7 +43,7 @@ export const useBookingViewModel = () => {
           }
           
           // Add all time slots for this date
-          avail.timeSlots.forEach(timeSlot => {
+          avail.TimeSlots.forEach(timeSlot => {
             if (!timeSlot) {
               console.log('Skipping invalid time slot');
               return;

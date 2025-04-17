@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../Service/firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { BsApple, BsGoogle } from "react-icons/bs"
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -56,11 +56,7 @@ const Signup = () => {
       const user = userCredential.user;
       console.log('User created in Firebase Auth:', user.uid);
 
-      // Set custom display name with prefix based on user type
-      const prefix = userType === 'Doctor' ? 'D' : 'P';
-      const updatedId = `${prefix}${user.uid}`;
-      await updateProfile(user, { updatedId });
-      console.log('User profile updated with display name:', updatedId);
+      console.log('User profile updated with display name:', user.uid);
 
       // Determine the correct collection based on user type
       const collectionName = userType === 'Doctor' ? 'doctors' : 'patients';
@@ -70,7 +66,7 @@ const Signup = () => {
       const userDoc = userType === 'Doctor' ? {
         UserName: name,
         Email: email,
-        Id: updatedId,
+        Id: user.uid,
         Type: userType,
         CarePlanIds:[],
         AppointmentIds:[],
@@ -79,7 +75,7 @@ const Signup = () => {
       } : {
         UserName: name,
         Email: email,
-        Id: updatedId,
+        Id: user.uid,
         Type: userType,
         CarePlanIds:[],
         AppointmentIds:[],

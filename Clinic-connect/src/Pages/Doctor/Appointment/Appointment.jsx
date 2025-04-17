@@ -3,21 +3,35 @@ import useAppointmentViewModel from './AppointmentViewModel';
 import { useNavigate } from "react-router-dom";
 import { BsCheckCircleFill } from "react-icons/bs"
 import { BackgroundCanvas } from '../../BackgroundCanvas';
-
-// Mock doctor ID for testing - replace this with actual auth later
-const MOCK_DOCTOR_ID = 'doctor-123';
+import { useUser } from '../../../Context/UserContext';
 
 export const DoctorAppointment = () => {
+  const { getUserId, loading, userType } = useUser();
+  const doctorId = getUserId();
   const { appointments, isLoading, error, fetchAppointments, approveAppointment } = useAppointmentViewModel();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchAppointments(MOCK_DOCTOR_ID);
-  }, [fetchAppointments]);
+    // Check if user data is loaded and user is a doctor
+    if (!loading) {
+      if (!doctorId) {
+        console.error('No doctor ID available - user might not be authenticated');
+        navigate('/login');
+        return;
+      }
+      if (userType !== 'Doctor') {
+        console.error('User is not a doctor');
+        navigate('/login');
+        return;
+      }
+      console.log('Fetching appointments for doctor:', doctorId);
+      fetchAppointments(doctorId);
+    }
+  }, [fetchAppointments, doctorId, loading, userType, navigate]);
 
   const handleApprove = async (appointmentId) => {
     try {
-      await approveAppointment(appointmentId, MOCK_DOCTOR_ID);
+      await approveAppointment(appointmentId, doctorId);
       // The appointments list will be automatically refreshed by the view model
     } catch (err) {
       console.error('Error approving appointment:', err);
@@ -33,8 +47,14 @@ export const DoctorAppointment = () => {
     }
   };
 
-  if (isLoading) {
+  // Show loading state while user data is being loaded
+  if (loading || isLoading) {
     return <BackgroundCanvas message="Loading appointments..." />;
+  }
+
+  // Show error if there's no doctor ID or user is not a doctor
+  if (!doctorId || userType !== 'Doctor') {
+    return <BackgroundCanvas message="Unauthorized access. Please log in as a doctor." isError={true} />;
   }
 
   if (error) {

@@ -8,28 +8,31 @@ import { DoctorHome } from './Pages/Doctor/Home/Home'
 import { DoctorAppointment } from './Pages/Doctor/Appointment/Appointment'
 import { DoctorAvailability } from './Pages/Doctor/Availability/Availability'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { auth, db } from './Service/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Login from './Pages/Login';
 import Signup from './Pages/Signup';
 import InitialSignup from './Pages/InitialSignup';
 import UserTypeSelection from './Pages/UserTypeSelection';
 import LoadingScreen from './Pages/Login';
+import { UserProvider, useUser } from './Context/UserContext';
 
 // Create a separate component for the authenticated layout
-const AuthenticatedLayout = ({ userType, userData, onLogout, children }) => (
-  <>
-    <Navbar user={userType} onLogout={onLogout} />
-    <main className="flex-1 ml-20 p-8">
-      {children}
-    </main>
-  </>
-);
+const AuthenticatedLayout = ({ children }) => {
+  const { userType, userData, handleLogout } = useUser();
+  return (
+    <>
+      <Navbar user={userType} onLogout={handleLogout} />
+      <main className="flex-1 ml-20 p-8">
+        {children}
+      </main>
+    </>
+  );
+};
 
 // Create a separate component for protected routes
-const ProtectedRoute = ({ children, requiredUserType, user, userType, loading }) => {
+const ProtectedRoute = ({ children, requiredUserType }) => {
+  const { user, userType, loading } = useUser();
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -47,54 +50,7 @@ const ProtectedRoute = ({ children, requiredUserType, user, userType, loading })
 
 // Create a separate component for the app content
 const AppContent = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [userType, setUserType] = useState(null);
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // Try to get user data from both collections
-          const [patientDoc, doctorDoc] = await Promise.all([
-            getDoc(doc(db, 'patients', user.uid)),
-            getDoc(doc(db, 'doctors', user.uid))
-          ]);
-
-          if (patientDoc.exists()) {
-            const data = patientDoc.data();
-            setUserData(data);
-            setUserType('Patient');
-          } else if (doctorDoc.exists()) {
-            const data = doctorDoc.data();
-            setUserData(data);
-            setUserType('Doctor');
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
-      } else {
-        setUserData(null);
-        setUserType(null);
-      }
-      setUser(user);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-      setUserType(null);
-      setUserData(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  const { user, userType, userData, loading } = useUser();
 
   if (loading) {
     return <LoadingScreen />;
@@ -110,34 +66,34 @@ const AppContent = () => {
       
       {/* Protected Patient Routes */}
       <Route path="/Patient" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Patient">
+        <ProtectedRoute requiredUserType="Patient">
           <Navigate to="/Patient/Home" />
         </ProtectedRoute>
       } />
       <Route path="/Patient/Home" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Patient">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
             <PatientHome userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
       } />
       <Route path="/Patient/Schedule" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Patient">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
             <PatientSchedule userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
       } />
       <Route path="/Patient/Search" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Patient">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
             <Search userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
       } />
       <Route path="/Patient/Booking" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Patient">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Patient">
+          <AuthenticatedLayout>
             <PatientBooking userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
@@ -145,27 +101,27 @@ const AppContent = () => {
 
       {/* Protected Doctor Routes */}
       <Route path="/Doctor" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Doctor">
+        <ProtectedRoute requiredUserType="Doctor">
           <Navigate to="/Doctor/Home" />
         </ProtectedRoute>
       } />
       <Route path="/Doctor/Home" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Doctor">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
             <DoctorHome userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
       } />
       <Route path="/Doctor/Appointment" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Doctor">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
             <DoctorAppointment userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
       } />
       <Route path="/Doctor/Availability" element={
-        <ProtectedRoute user={user} userType={userType} loading={loading} requiredUserType="Doctor">
-          <AuthenticatedLayout userType={userType} userData={userData} onLogout={handleLogout}>
+        <ProtectedRoute requiredUserType="Doctor">
+          <AuthenticatedLayout>
             <DoctorAvailability userData={userData} />
           </AuthenticatedLayout>
         </ProtectedRoute>
@@ -181,7 +137,9 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <AppContent />
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </Router>
   );
 }
