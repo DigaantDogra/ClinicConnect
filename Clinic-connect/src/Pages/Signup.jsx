@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../Service/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 
@@ -11,6 +12,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const navigate = useNavigate();
+  const db = getFirestore();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -19,8 +21,25 @@ const Signup = () => {
       return;
     }
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard');
+      // Create the user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Set custom display name with D prefix
+      const displayName = `D${user.uid}`;
+      await updateProfile(user, { displayName });
+
+      // Create a user document in Firestore
+      await setDoc(doc(db, 'users', user.uid), {
+        name: name,
+        email: email,
+        uid: `D${user.uid}`,
+        userType: 'Doctor',
+        displayId: displayName,
+        createdAt: new Date().toISOString()
+      });
+
+      navigate('/doctor');
     } catch (error) {
       setError(error.message);
     }
@@ -68,7 +87,7 @@ const Signup = () => {
                 type="checkbox"
                 checked={agreeToTerms}
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
-              />&nbsp;
+              /> &nbsp;
               I agree to the <a href="#" className="terms-link">terms & policy</a>
             </label>
           </div>
@@ -77,7 +96,7 @@ const Signup = () => {
         <div className="auth-divider">
           <span>Or</span>
         </div>
-        {/* <div className="social-buttons">
+        <div className="social-buttons">
           <button className="social-button google">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
             Sign in with Google
@@ -86,7 +105,7 @@ const Signup = () => {
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" />
             Sign in with Apple
           </button>
-        </div> */}
+        </div>
         <p className="auth-switch">
           Have an account? <span onClick={() => navigate('/login')} className="auth-link">Sign in</span>
         </p>
