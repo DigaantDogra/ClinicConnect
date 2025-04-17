@@ -12,10 +12,10 @@ public class Availability
     public string DoctorId { get; set; } = string.Empty;
     
     [FirestoreProperty]
-    public string Date { get; set; } = string.Empty;
+    public List<string> Dates { get; set; } = new List<string>();
     
     [FirestoreProperty]
-    public string TimeSlot { get; set; } = string.Empty;
+    public List<string> TimeSlots { get; set; } = new List<string>();
     
     [FirestoreProperty]
     public bool IsAvailable { get; set; } = true;
