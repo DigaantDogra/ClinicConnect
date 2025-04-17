@@ -213,5 +213,29 @@ namespace ClinicConnectService.Controllers
                 return StatusCode(500, "An error occurred while retrieving care plans");
             }
         }
+
+        [HttpGet("patient/{patientId}")]
+        public async Task<IActionResult> GetPatientApprovedCarePlans(string patientId)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching approved care plans for patient: {PatientId}", patientId);
+
+                // Get all care plans for this patient
+                var carePlans = await _firebaseService.QueryCollection<CarePlan>(COLLECTION_NAME, "PatientId", patientId);
+
+                // Filter for approved plans only
+                var approvedPlans = carePlans.Where(p => p.Status == "approved").ToList();
+
+                _logger.LogInformation("Found {Count} approved care plans for patient {PatientId}", approvedPlans.Count, patientId);
+
+                return Ok(approvedPlans);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving approved care plans for patient {PatientId}", patientId);
+                return StatusCode(500, "An error occurred while retrieving approved care plans");
+            }
+        }
     }
 }   

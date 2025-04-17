@@ -322,9 +322,11 @@ class ApiService {
     }
   }
 
-  async getPatientCarePlans(doctorId, patientId) {
+  // Get all care plans for a patient
+  static async getPatientCarePlans(patientId) {
     try {
-      const response = await fetch(`${this.baseUrl}/api/careplan/doctor/${doctorId}/patient/${patientId}`, {
+      console.log('Fetching care plans for patient:', patientId);
+      const response = await fetch(`${this.carePlanBaseUrl}/patient/${patientId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -333,13 +335,36 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch patient care plans');
+        throw new Error(errorData.detail || 'Failed to fetch care plans');
+      }
+
+      const plans = await response.json();
+      console.log('Fetched care plans:', plans);
+      return plans;
+    } catch (error) {
+      console.error('Error fetching care plans:', error);
+      throw error;
+    }
+  }
+
+  // Get doctor information
+  static async getDoctorInfo(doctorId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/doctor/${doctorId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch doctor information');
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Error fetching patient care plans:', error);
-      throw new Error(`Failed to fetch patient care plans: ${error.message}`);
+      console.error('Error fetching doctor information:', error);
+      throw error;
     }
   }
 }
