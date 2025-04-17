@@ -1,26 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApiService } from '../../Services/ApiService';
+import ApiService from '../../../Service/ApiService';
 
 export const useApprovedPlanViewModel = () => {
     const [plan, setPlan] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const apiService = useApiService();
 
     useEffect(() => {
-        const savedPlan = localStorage.getItem('generatedPlan');
-        if (savedPlan) {
-            const parsedPlan = JSON.parse(savedPlan);
-            if (parsedPlan.status === 'approved') {
-                setPlan(parsedPlan);
-            } else {
-                navigate('/Doctor/DraftPlan');
+        const fetchApprovedPlan = async () => {
+            try {
+                setIsLoading(true);
+                const doctorId = localStorage.getItem('doctorId');
+                if (!doctorId) {
+                    throw new Error('Doctor ID not found');
+                }
+
+                // For now, use doctorId as patientId for testing
+                const plans = await ApiService.getPatientCarePlans(
+                    parseInt(doctorId),
+                    parseInt(doctorId)
+                );
+                
+                if (plans && plans.length > 0) {
+                    const approvedPlan = plans.find(p => p.status === 'approved');
+                    if (approvedPlan) {
+                        setPlan(approvedPlan);
+                        localStorage.setItem('currentCarePlanId', approvedPlan.id);
+                    } else {
+                        navigate('/Doctor/GeneratePlan');
+                    }
+                } else {
+                    navigate('/Doctor/GeneratePlan');
+                }
+            } catch (err) {
+                setError(err.message);
+                navigate('/Doctor/GeneratePlan');
+            } finally {
+                setIsLoading(false);
             }
-        } else {
-            navigate('/Doctor/GeneratePlan');
-        }
+        };
+
+        fetchApprovedPlan();
     }, [navigate]);
 
     const handleBackToDraft = () => {
@@ -28,7 +50,7 @@ export const useApprovedPlanViewModel = () => {
     };
 
     const handleNewPlan = () => {
-        localStorage.removeItem('generatedPlan');
+        localStorage.removeItem('currentCarePlanId');
         navigate('/Doctor/GeneratePlan');
     };
 

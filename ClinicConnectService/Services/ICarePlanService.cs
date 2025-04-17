@@ -1,5 +1,5 @@
 // Services/ICarePlanService.cs
-using ClinicConnectService.Models;
+using ClinicConnectService.Model;
 
 namespace ClinicConnectService.Services
 {

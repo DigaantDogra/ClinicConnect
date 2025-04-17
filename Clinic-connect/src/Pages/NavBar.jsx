@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom";
-import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent } from "react-icons/bs"
+import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent, BsFileEarmarkPlus, BsFileEarmark, BsFileCheck } from "react-icons/bs"
 
 const defaultPage = "Home"
 
@@ -32,6 +32,24 @@ export const Navbar = ({ user = "Patient" }) => {
                   name={`${user}/Availability`}
                   isActive={activeIcon === "Availability"}
                   onClick={() => setActiveIcon("Availability")}
+                />
+                <SideIcon
+                  icon={<BsFileEarmarkPlus />}
+                  name={`${user}/GeneratePlan`}
+                  isActive={activeIcon === "GeneratePlan"}
+                  onClick={() => setActiveIcon("GeneratePlan")}
+                />
+                <SideIcon
+                  icon={<BsFileEarmark />}
+                  name={`${user}/DraftPlan`}
+                  isActive={activeIcon === "DraftPlan"}
+                  onClick={() => setActiveIcon("DraftPlan")}
+                />
+                <SideIcon
+                  icon={<BsFileCheck />}
+                  name={`${user}/Approval`}
+                  isActive={activeIcon === "Approval"}
+                  onClick={() => setActiveIcon("Approval")}
                 />
               </>
             ) : (

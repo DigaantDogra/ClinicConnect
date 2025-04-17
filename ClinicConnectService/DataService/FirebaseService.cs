@@ -1,7 +1,7 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
-using ClinicConnectService.Service;
+using ClinicConnectService.Services;
 using System;
 using System.Linq.Expressions;
 
@@ -10,6 +10,11 @@ namespace ClinicConnectService.DataService;
 public class FirebaseService : IFirebaseService
 {
     private static FirestoreDb? _firestoreDb;
+
+    public FirebaseService()
+    {
+        InitializeFirebase();
+    }
 
     public void InitializeFirebase()
     {
@@ -48,7 +53,7 @@ public class FirebaseService : IFirebaseService
     {
         if (_firestoreDb == null)
         {
-            throw new InvalidOperationException("Firestore database not initialized. Call InitializeFirebase first.");
+            throw new InvalidOperationException("Firestore database not initialized.");
         }
         return _firestoreDb;
     }
@@ -106,12 +111,59 @@ public class FirebaseService : IFirebaseService
     {
         var db = GetFirestoreDb();
         var query = db.Collection(collection);
-        // Note: Firestore has limited support for LINQ expressions
-        // This is for more complex querying if needed
         var snapshot = await query.GetSnapshotAsync();
         return snapshot.Documents
             .Select(doc => doc.ConvertTo<T>())
             .Where(predicate.Compile())
             .ToList();
+    }
+
+    public async Task<T> GetDocumentAsync<T>(string collection, string documentId) where T : class
+    {
+        var db = GetFirestoreDb();
+        var docRef = db.Collection(collection).Document(documentId);
+        var snapshot = await docRef.GetSnapshotAsync();
+        
+        if (snapshot.Exists)
+        {
+            return snapshot.ConvertTo<T>();
+        }
+        throw new KeyNotFoundException($"Document {documentId} not found in collection {collection}");
+    }
+
+    public async Task<string> AddDocumentAsync<T>(string collection, T data) where T : class
+    {
+        var db = GetFirestoreDb();
+        var docRef = await db.Collection(collection).AddAsync(data);
+        return docRef.Id;
+    }
+
+    public async Task UpdateDocumentAsync<T>(string collection, string documentId, T data) where T : class
+    {
+        var db = GetFirestoreDb();
+        var docRef = db.Collection(collection).Document(documentId);
+        await docRef.SetAsync(data, SetOptions.MergeAll);
+    }
+
+    public async Task DeleteDocumentAsync(string collection, string documentId)
+    {
+        var db = GetFirestoreDb();
+        var docRef = db.Collection(collection).Document(documentId);
+        await docRef.DeleteAsync();
+    }
+
+    public async Task<List<T>> GetCollectionAsync<T>(string collection) where T : class
+    {
+        var db = GetFirestoreDb();
+        var snapshot = await db.Collection(collection).GetSnapshotAsync();
+        return snapshot.Documents.Select(doc => doc.ConvertTo<T>()).ToList();
+    }
+
+    public async Task<List<T>> QueryCollectionAsync<T>(string collection, string field, object value) where T : class
+    {
+        var db = GetFirestoreDb();
+        var query = db.Collection(collection).WhereEqualTo(field, value);
+        var snapshot = await query.GetSnapshotAsync();
+        return snapshot.Documents.Select(doc => doc.ConvertTo<T>()).ToList();
     }
 }

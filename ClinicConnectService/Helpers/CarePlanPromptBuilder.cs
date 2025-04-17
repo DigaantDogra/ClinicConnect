@@ -1,4 +1,4 @@
-using ClinicConnectService.Models;
+using ClinicConnectService.Model;
 
 namespace ClinicConnectService.Helpers
 {

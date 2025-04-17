@@ -9,13 +9,13 @@ public class User
     public string Id { get; set; } = string.Empty;
     
     [FirestoreProperty]
-    public string UserName { get; set; } = string.Empty;
+    public required string UserName { get; set; }
     
     [FirestoreProperty]
-    public string Email { get; set; } = string.Empty;
+    public required string Email { get; set; }
     
     [FirestoreProperty]
-    public string Type { get; set; }
+    public required string Type { get; set; }
     
     [FirestoreProperty]
     public List<string> AppointmentIds { get; set; } = new List<string>();

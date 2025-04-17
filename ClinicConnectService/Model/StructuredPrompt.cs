@@ -1,4 +1,6 @@
-namespace ClinicConnectService.Models
+using System.Collections.Generic;
+
+namespace ClinicConnectService.Model
 {
     public class StructuredPrompt
     {
@@ -7,4 +9,4 @@ namespace ClinicConnectService.Models
         public string Subtype { get; set; } = string.Empty;
         public List<string> Comorbidities { get; set; } = new List<string>();
     }
-} 
+}

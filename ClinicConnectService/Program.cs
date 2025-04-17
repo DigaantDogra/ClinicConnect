@@ -3,8 +3,6 @@ using ClinicConnectService.DataService;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ClinicConnectService.DataService;
-using ClinicConnectService.Service;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,16 +46,15 @@ if (!File.Exists(credentialsPath))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-
-// Add CORS services
+// Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        builder => builder
-            .WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials());
+    options.AddPolicy("AllowLocalhost", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
 // Add HttpClient for FastAPI communication
@@ -67,31 +64,16 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ICarePlanService, CarePlanService>();
 builder.Services.AddSingleton<IFirebaseService, FirebaseService>();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("MyAllowSpecificOrigins",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
-});
-
 var app = builder.Build();
 
-
-
-// Use CORS middleware
-app.UseCors("AllowReactApp");
-app.UseCors("MyAllowSpecificOrigins");
-
-
-// Initialize Firebase
-var firebaseService = app.Services.GetRequiredService<IFirebaseService>();
-firebaseService.InitializeFirebase();
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.UseHttpsRedirection();
+app.UseCors("AllowLocalhost");
 app.UseAuthorization();
 app.MapControllers();
 

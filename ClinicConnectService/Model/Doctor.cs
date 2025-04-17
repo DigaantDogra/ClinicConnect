@@ -7,7 +7,8 @@ public class Doctor:User
 {
     [FirestoreProperty]
     public List<string> AvailabilityIds { get; set; } = new List<string>();
-    
+    [FirestoreProperty]
+    public List<string> CarePlanIds { get; set; } = new List<string>();
     public Doctor()
     {
         Type = "Doctor";

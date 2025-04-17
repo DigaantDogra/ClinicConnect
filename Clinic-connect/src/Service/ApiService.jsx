@@ -2,6 +2,7 @@ class ApiService {
   static baseUrl = 'http://localhost:5276';
   static patientBaseUrl = `${this.baseUrl}/patient`;
   static doctorBaseUrl = `${this.baseUrl}/doctor`;
+  static carePlanBaseUrl = `${this.baseUrl}/api/careplan`;
 
   static async getHeaders() {
     const token = localStorage.getItem('authToken');
@@ -197,6 +198,148 @@ class ApiService {
     } catch (error) {
       console.error('Error deleting availability:', error);
       throw error;
+    }
+  }
+
+  // Doctor Care Plan Operations
+  static async generateCarePlan(doctorId, patientId, patientCondition) {
+    try {
+      console.log('Generating care plan for patient:', patientId);
+      
+      // Ensure IDs are in the correct format without double-prefixing
+      const formattedDoctorId = doctorId.startsWith('doctor-') ? doctorId : `doctor-${doctorId}`;
+      const formattedPatientId = patientId.startsWith('patient-') ? patientId : `patient-${patientId}`;
+      
+      const requestBody = {
+        doctorId: formattedDoctorId,
+        patientId: formattedPatientId,
+        condition: patientCondition,
+        clinicalGuidance: patientCondition
+      };
+
+      console.log('Sending request with body:', requestBody);
+
+      const response = await fetch(`${this.carePlanBaseUrl}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to generate care plan: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error generating care plan:', error);
+      throw error;
+    }
+  }
+
+  static async getPatientDetails(patientId) {
+    try {
+      const response = await fetch(`${this.patientBaseUrl}/${patientId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch patient details');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching patient details:', error);
+      throw error;
+    }
+  }
+
+  static async getDoctorDetails(doctorId) {
+    try {
+      const response = await fetch(`${this.doctorBaseUrl}/${doctorId}`, {
+        method: 'GET',
+        headers: await this.getHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch doctor details');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching doctor details:', error);
+      throw error;
+    }
+  }
+
+  static async editCarePlan(doctorId, carePlanId, updatedPlan) {
+    try {
+      const response = await fetch(`${this.carePlanBaseUrl}/doctor/edit/${carePlanId}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(),
+        body: JSON.stringify({
+          doctorId,
+          updatedPlan
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to edit care plan: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error editing care plan:', error);
+      throw error;
+    }
+  }
+
+  static async approveCarePlan(doctorId, carePlanId) {
+    try {
+      const response = await fetch(`${this.carePlanBaseUrl}/doctor/approve/${carePlanId}`, {
+        method: 'PUT',
+        headers: await this.getHeaders(),
+        body: JSON.stringify({
+          doctorId
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to approve care plan: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error approving care plan:', error);
+      throw error;
+    }
+  }
+
+  async getPatientCarePlans(doctorId, patientId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/careplan/doctor/${doctorId}/patient/${patientId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch patient care plans');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching patient care plans:', error);
+      throw new Error(`Failed to fetch patient care plans: ${error.message}`);
     }
   }
 }
