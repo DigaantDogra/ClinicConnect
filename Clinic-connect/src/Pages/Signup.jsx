@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../Service/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { BsApple, BsGoogle } from "react-icons/bs"
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
@@ -157,11 +158,11 @@ const Signup = () => {
         </div>
         <div className="social-buttons">
           <button className="social-button google">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
+            <BsGoogle />
             Sign in with Google
           </button>
           <button className="social-button apple">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" />
+            <BsApple />
             Sign in with Apple
           </button>
         </div>
