@@ -57,6 +57,7 @@ const useAppointmentViewModel = () => {
       
       console.log('Formatted Appointments with Patient Names:', appointmentsWithPatientNames);
       setAppointments(appointmentsWithPatientNames);
+      setError(null);
     } catch (err) {
       console.error('Error in fetchAppointments:', err);
       setError(err.message);

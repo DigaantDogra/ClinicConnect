@@ -36,6 +36,15 @@ export const PatientSchedule = () => {
     });
   };
 
+  const getStatusBadge = (isApproved) => {
+    const baseClasses = "px-2 py-1 rounded-full text-xs font-semibold";
+    if (isApproved) {
+      return <span className={`${baseClasses} bg-green-100 text-green-800`}>Approved</span>;
+    } else {
+      return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>Pending</span>;
+    }
+  };
+
   if (isLoading) {
     return <BackgroundCanvas message="Loading appointments..." />;
   }
@@ -63,6 +72,7 @@ export const PatientSchedule = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -73,6 +83,9 @@ export const PatientSchedule = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.timeSlot}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.doctorName}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {getStatusBadge(appointment.isConfirmed)}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex space-x-2">
                       <button

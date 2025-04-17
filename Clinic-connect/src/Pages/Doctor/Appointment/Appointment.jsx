@@ -1,145 +1,90 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from 'react';
+import useAppointmentViewModel from './AppointmentViewModel';
 import { useNavigate } from "react-router-dom";
-import useAppointmentViewModel from "./AppointmentViewModel";
-import { FaCheck } from "react-icons/fa";
+import { BsCheckCircleFill } from "react-icons/bs"
+import { BackgroundCanvas } from '../../BackgroundCanvas';
 
+// Mock doctor ID for testing - replace this with actual auth later
 const MOCK_DOCTOR_ID = 'doctor-123';
 
-export const DoctorAppointment = ({ doctorId }) => {
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const {
-    appointments,
-    isLoading,
-    error,
-    fetchAppointments,
-    approveAppointment
-  } = useAppointmentViewModel();
+export const DoctorAppointment = () => {
+  const { appointments, isLoading, error, fetchAppointments, approveAppointment } = useAppointmentViewModel();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (MOCK_DOCTOR_ID) {
-      fetchAppointments(MOCK_DOCTOR_ID);
-    }
-  }, [MOCK_DOCTOR_ID, fetchAppointments]);
+    fetchAppointments(MOCK_DOCTOR_ID);
+  }, [fetchAppointments]);
 
-  const handleApprove = async () => {
-    if (!selectedAppointment) return;
-    
-    setIsProcessing(true);
+  const handleApprove = async (appointmentId) => {
     try {
-      await approveAppointment(selectedAppointment.id, MOCK_DOCTOR_ID);
-      setShowApproveModal(false);
+      await approveAppointment(appointmentId, MOCK_DOCTOR_ID);
+      // The appointments list will be automatically refreshed by the view model
     } catch (err) {
-      console.error("Error approving appointment:", err);
-    } finally {
-      setIsProcessing(false);
+      console.error('Error approving appointment:', err);
     }
-  };
-
-  const handleApproveClick = (appointment) => {
-    setSelectedAppointment(appointment);
-    setShowApproveModal(true);
   };
 
   const getStatusBadge = (status) => {
     const baseClasses = "px-2 py-1 rounded-full text-xs font-semibold";
-    switch (status) {
-      case "confirmed":
-        return <span className={`${baseClasses} bg-green-100 text-green-800`}>Confirmed</span>;
-      case "pending":
-        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>Pending</span>;
-      case "cancelled":
-        return <span className={`${baseClasses} bg-red-100 text-red-800`}>Cancelled</span>;
-      default:
-        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>Unknown</span>;
+    if (status === 'confirmed') {
+      return <span className={`${baseClasses} bg-green-100 text-green-800`}>Approved</span>;
+    } else {
+      return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>Pending</span>;
     }
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <BackgroundCanvas message="Loading appointments..." />;
+  }
+
+  if (error) {
+    return <BackgroundCanvas message={`Error: ${error}`} isError={true} />;
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold mb-6">Appointments</h1>
-        
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-3 px-4 text-left">Patient</th>
-                <th className="py-3 px-4 text-left">Date</th>
-                <th className="py-3 px-4 text-left">Time</th>
-                <th className="py-3 px-4 text-left">Reason</th>
-                <th className="py-3 px-4 text-left">Status</th>
-                <th className="py-3 px-4 text-left">Actions</th>
+    <BackgroundCanvas section={
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="overflow-x-auto rounded-lg shadow">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {appointments.map((appointment) => (
-                <tr key={appointment.id} className="border-b">
-                  <td className="py-3 px-4">{appointment.patientName}</td>
-                  <td className="py-3 px-4">{new Date(appointment.date).toLocaleDateString()}</td>
-                  <td className="py-3 px-4">{appointment.timeSlot}</td>
-                  <td className="py-3 px-4">{appointment.reason}</td>
-                  <td className="py-3 px-4">{getStatusBadge(appointment.status)}</td>
-                  <td className="py-3 px-4">
-                    {appointment.status === "pending" && (
-                      <button
-                        onClick={() => handleApproveClick(appointment)}
-                        className="p-2 text-green-600 hover:bg-green-100 rounded-full"
-                        title="Approve Appointment"
-                        disabled={isProcessing}
-                      >
-                        <FaCheck />
-                      </button>
-                    )}
+            <tbody className="bg-white divide-y divide-gray-200">
+              {appointments.map((appointment, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.date}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.timeSlot}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.patientName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appointment.reason}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {getStatusBadge(appointment.status)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex space-x-2">
+                      {appointment.status === 'pending' && (
+                        <button
+                          onClick={() => handleApprove(appointment.id)}
+                          className="text-green-500 text-xl/snug hover:text-green-700"
+                          title="Approve Appointment"
+                        >
+                          <BsCheckCircleFill />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        {/* Approve Modal */}
-        {showApproveModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="bg-white p-6 rounded-lg">
-              <h3 className="text-lg font-semibold mb-4">Approve Appointment</h3>
-              <p className="mb-4">Are you sure you want to approve this appointment?</p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setShowApproveModal(false)}
-                  className="px-4 py-2 bg-gray-200 rounded"
-                  disabled={isProcessing}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleApprove}
-                  className="px-4 py-2 bg-green-500 text-white rounded"
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? "Approving..." : "Approve"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    }/>
   );
 };
