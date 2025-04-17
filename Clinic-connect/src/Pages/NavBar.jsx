@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { BsHouseFill, BsFileEarmarkPerson, BsFileEarmarkArrowUpFill, BsCalendar2CheckFill, BsFileEarmarkTextFill, BsCalendarEvent } from "react-icons/bs"
 import { signOut } from 'firebase/auth';
 import { auth } from '../Service/firebase';
@@ -10,12 +10,11 @@ export const Navbar = ({ user, onLogout }) => {
     let [activeIcon, setActiveIcon] = React.useState(defaultPage);
     const location = useLocation();
     const isDoctor = location.pathname.includes("/Doctor");
-    const navigate = useNavigate();
   
     const handleLogout = async () => {
       try {
         await signOut(auth);
-        navigate('/');
+        onLogout();
       } catch (error) {
         console.error('Error signing out:', error);
       }
