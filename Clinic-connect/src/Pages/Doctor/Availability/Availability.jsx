@@ -1,60 +1,35 @@
 import { BackgroundCanvas } from "../../BackgroundCanvas";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useAvailabilityViewModel from './AvailabilityViewModel';
+
+const MOCK_DOCTOR_ID = 'doctor-123';
 
 export const DoctorAvailability = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [availability, setAvailability] = useState({});
-  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [selectedDates, setSelectedDates] = useState([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const {
-    availabilities,
     isLoading,
     error,
     successMessage,
-    fetchAvailabilities,
     addAvailability,
     clearMessages
   } = useAvailabilityViewModel();
 
-  useEffect(() => {
-    fetchAvailabilities();
-  }, [fetchAvailabilities]);
-
   const handleDateSelect = (date) => {
-    // Don't allow selection if date has existing availabilities
-    if (isDateInFetchedRange(date)) {
-      return;
-    }
-
-    if (!dateRange.start || dateRange.end) {
-      // Start new range
-      setDateRange({ start: date, end: null });
-    } else {
-      // Complete the range
-      if (date < dateRange.start) {
-        setDateRange({ start: date, end: dateRange.start });
+    setSelectedDates(prev => {
+      if (prev.includes(date.toISOString().split('T')[0])) {
+        return prev.filter(d => d !== date.toISOString().split('T')[0]);
       } else {
-        setDateRange({ ...dateRange, end: date });
+        return [...prev, date.toISOString().split('T')[0]];
       }
-    }
-  };
-
-  const isDateInRange = (date) => {
-    if (!dateRange.start) return false;
-    if (!dateRange.end) return date.getTime() === dateRange.start.getTime();
-    return date >= dateRange.start && date <= dateRange.end;
-  };
-
-  const isDateInFetchedRange = (date) => {
-    return availabilities.some(avail => {
-      const availDate = new Date(avail.date);
-      return availDate.toDateString() === date.toDateString();
     });
+  };
+
+  const isDateSelected = (date) => {
+    return selectedDates.includes(date.toISOString().split('T')[0]);
   };
 
   const handleTimeSelect = (time) => {
@@ -68,36 +43,21 @@ export const DoctorAvailability = () => {
   };
 
   const handleSaveAvailability = async () => {
-    if (selectedTimeSlots.length === 0 || !dateRange.start || !dateRange.end) return;
+    if (selectedTimeSlots.length === 0 || selectedDates.length === 0) return;
 
     setIsSaving(true);
     clearMessages();
 
     try {
-      // Create availability for each day in the range and each time slot
-      const savePromises = [];
-      let currentDate = new Date(dateRange.start);
-
-      while (currentDate <= dateRange.end) {
-        for (const timeSlot of selectedTimeSlots) {
-          const availability = {
-            date: currentDate.toISOString().split('T')[0],
-            timeSlot: timeSlot,
-            isAvailable: true
-          };
-          savePromises.push(addAvailability(availability));
-        }
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-
-      // Wait for all availability saves to complete
-      await Promise.all(savePromises);
-
-      // Refresh the availabilities list
-      await fetchAvailabilities();
-
+      console.log('Saving availability with:', {
+        dates: selectedDates,
+        timeSlots: selectedTimeSlots
+      });
+      
+      await addAvailability(MOCK_DOCTOR_ID, selectedDates, selectedTimeSlots);
+      
       // Clear the selection
-      setDateRange({ start: null, end: null });
+      setSelectedDates([]);
       setSelectedTimeSlots([]);
     } catch (err) {
       console.error('Error saving availability:', err);
@@ -114,9 +74,9 @@ export const DoctorAvailability = () => {
     return slots;
   };
 
-  const formatDateRange = () => {
-    if (!dateRange.start || !dateRange.end) return '';
-    return `${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}`;
+  const formatSelectedDates = () => {
+    if (selectedDates.length === 0) return '';
+    return selectedDates.map(date => new Date(date).toLocaleDateString()).join(', ');
   };
 
   return (
@@ -151,33 +111,22 @@ export const DoctorAvailability = () => {
               ))}
               {Array.from({ length: new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate() }, (_, i) => {
                 const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1);
-                const isSelected = availability[date.toISOString().split('T')[0]];
                 const currentTime = new Date();
                 const isPast6PM = currentTime.getHours() >= 18;
                 const isToday = date.toDateString() === currentTime.toDateString();
                 const isDisabled = date < new Date(new Date().setHours(0,0,0,0)) || (isToday && isPast6PM);
-                const isInRange = isDateInRange(date);
-                const isInFetchedRange = isDateInFetchedRange(date);
-                const isRangeStart = dateRange.start && date.getTime() === dateRange.start.getTime();
-                const isRangeEnd = dateRange.end && date.getTime() === dateRange.end.getTime();
+                const isSelected = isDateSelected(date);
 
                 return (
                   <button
                     key={i}
                     onClick={() => handleDateSelect(date)}
                     className={`p-2 rounded-full ${
-                      isInFetchedRange 
-                        ? 'bg-cyan-200 cursor-not-allowed' 
-                        : 'hover:bg-gray-100'
-                    } ${
-                      isInRange ? 'bg-blue-200' : ''
-                    } ${
-                      isRangeStart || isRangeEnd ? 'bg-blue-500 text-white' : ''
+                      isSelected ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'
                     } ${
                       isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
-                    disabled={isDisabled || isInFetchedRange}
-                    title={isInFetchedRange ? "This date already has availability slots" : ""}
+                    disabled={isDisabled}
                   >
                     {i + 1}
                   </button>
@@ -186,21 +135,17 @@ export const DoctorAvailability = () => {
             </div>
             <div className="mt-4 text-sm text-gray-600">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-cyan-200 rounded-full"></div>
-                <span>Existing Availability</span>
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-4 h-4 bg-blue-200 rounded-full"></div>
-                <span>Selected Range</span>
+                <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                <span>Selected Dates</span>
               </div>
             </div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Time Slots</h2>
-            {dateRange.start && dateRange.end ? (
-              <div>
-                <p className="text-gray-600 mb-4">Selected Date Range: {formatDateRange()}</p>
-                <div className="grid grid-cols-3 gap-2">
+            {selectedDates.length > 0 ? (
+              <>
+                <p className="text-gray-600 mb-4">Selected Dates: {formatSelectedDates()}</p>
+                <div className="grid grid-cols-2 gap-2">
                   {generateTimeSlots().map(time => (
                     <button
                       key={time}
@@ -210,44 +155,34 @@ export const DoctorAvailability = () => {
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-100 hover:bg-gray-200'
                       }`}
-                      disabled={isSaving}
                     >
                       {time}
                     </button>
                   ))}
                 </div>
-                <div className="mt-4">
-                  <button
-                    className={`px-4 py-2 rounded ${
-                      selectedTimeSlots.length > 0 && !isSaving
-                        ? 'bg-blue-500 text-white hover:bg-blue-600'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                    onClick={handleSaveAvailability}
-                    disabled={selectedTimeSlots.length === 0 || isSaving}
-                    title={selectedTimeSlots.length === 0 ? "Please select at least one time slot" : ""}
-                  >
-                    {isSaving ? 'Saving...' : 'Save Availability'}
-                  </button>
-                </div>
-                {error && (
-                  <div className="mt-4 text-red-500">
-                    {error}
-                  </div>
-                )}
-                {successMessage && (
-                  <div className="mt-4 text-green-500">
-                    {successMessage}
-                  </div>
-                )}
-              </div>
+                <button
+                  onClick={handleSaveAvailability}
+                  disabled={isSaving || selectedTimeSlots.length === 0}
+                  className="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save Availability'}
+                </button>
+              </>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                Select dates to update availability
-              </div>
+              <p className="text-gray-600">Please select dates first</p>
             )}
           </div>
         </div>
+        {error && (
+          <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="mt-4 p-4 bg-green-100 text-green-700 rounded">
+            {successMessage}
+          </div>
+        )}
       </div>
     }/>
   );
