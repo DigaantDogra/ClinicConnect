@@ -60,7 +60,7 @@ const Login = () => {
         <div className="auth-divider">
           <span>Or</span>
         </div>
-        <div className="social-buttons">
+        {/* <div className="social-buttons">
           <button className="social-button google">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
             Sign in with Google
@@ -69,7 +69,7 @@ const Login = () => {
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" />
             Sign in with Apple
           </button>
-        </div>
+        </div> */}
         <p className="auth-switch">
           Don't have an account? <span onClick={() => navigate('/signup')} className="auth-link">Sign Up</span>
         </p>

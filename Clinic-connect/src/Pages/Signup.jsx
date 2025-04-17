@@ -68,7 +68,7 @@ const Signup = () => {
                 type="checkbox"
                 checked={agreeToTerms}
                 onChange={(e) => setAgreeToTerms(e.target.checked)}
-              />
+              />&nbsp;
               I agree to the <a href="#" className="terms-link">terms & policy</a>
             </label>
           </div>
@@ -77,7 +77,7 @@ const Signup = () => {
         <div className="auth-divider">
           <span>Or</span>
         </div>
-        <div className="social-buttons">
+        {/* <div className="social-buttons">
           <button className="social-button google">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" />
             Sign in with Google
@@ -86,7 +86,7 @@ const Signup = () => {
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" alt="Apple" />
             Sign in with Apple
           </button>
-        </div>
+        </div> */}
         <p className="auth-switch">
           Have an account? <span onClick={() => navigate('/login')} className="auth-link">Sign in</span>
         </p>
